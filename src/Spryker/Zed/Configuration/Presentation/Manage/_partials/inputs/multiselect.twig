@@ -1,0 +1,16 @@
+{% set selectedValues = setting.has_custom_value ? setting.current_value_parsed : setting.inherited_value_parsed %}
+<select id="setting-{{ setting.key }}"
+        class="form-control config-input"
+        multiple
+        size="{{ min(setting.options|length, 5) }}"
+        data-original-value="{{ setting.current_value }}"
+        data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}"
+        {% if isEditable is defined and not isEditable %}disabled{% endif %}>
+    {% for option in setting.options %}
+        <option value="{{ option.value }}"
+                {% if option.value in selectedValues %}selected{% endif %}>
+            {{ option.label }}
+        </option>
+    {% endfor %}
+</select>
+<small class="text-muted">{{ 'Hold Ctrl/Cmd to select multiple' | trans }}</small>

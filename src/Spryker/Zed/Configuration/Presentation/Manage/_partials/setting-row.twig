@@ -1,0 +1,73 @@
+<div class="setting-row {% if setting.type == 'boolean' %}boolean-row{% else %}non-boolean-row{% endif %}"
+     data-setting-key="{{ setting.key }}"
+     data-feature-key="{{ setting.feature_key }}"
+     data-full-key="{{ setting.key }}"
+     data-inherited-value="{{ setting.inherited_value }}"
+     data-default-value="{{ setting.default_value }}"
+     data-dependencies="{{ setting.dependencies|default([])|json_encode|e('html_attr') }}">
+    {# Label & Description (always first) #}
+    <div class="setting-label">
+        <label for="setting-{{ setting.key }}">
+            {{ setting.name | trans }}
+            {% if setting.default_value is not null %}
+                <span class="overrides-default-badge" style="display: {% if setting.has_custom_value %}inline{% else %}none{% endif %};">{{ 'Overrides Default' | trans }}</span>
+            {% endif %}
+            {% if setting.pending_sync %}
+                <span class="pending-sync-badge">{{ 'Waiting for synchronisation' | trans }}</span>
+            {% endif %}
+        </label>
+        {% if setting.description %}
+            <div class="setting-description">
+                {{ setting.description | trans }}
+            </div>
+        {% endif %}
+        {% if setting.note %}
+            <div class="setting-note">
+                {{ setting.note | trans }}
+            </div>
+        {% endif %}
+
+        {# Use Default Link — visible whenever value differs from default #}
+        {% if isEditable is not defined or isEditable %}
+            <div class="use-default-container">
+                {% if setting.default_value is not null %}
+                    <a href="javascript:void(0)"
+                       class="use-default-link"
+                       data-setting-key="{{ setting.key }}"
+                       style="display: {% if setting.has_custom_value %}inline-flex{% else %}none{% endif %};">
+                        <i class="fa fa-undo"></i>
+                        {{ 'Use Default' | trans }}
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+
+    {# Input Field (boolean on right, others below) #}
+    <div class="setting-input">
+        {% if setting.template %}
+            {% include setting.template %}
+        {% elseif setting.type == 'boolean' %}
+            {% include '@Configuration/Manage/_partials/inputs/boolean.twig' %}
+        {% elseif setting.type == 'select' %}
+            {% include '@Configuration/Manage/_partials/inputs/select.twig' %}
+        {% elseif setting.type == 'multiselect' %}
+            {% include '@Configuration/Manage/_partials/inputs/multiselect.twig' %}
+        {% elseif setting.type == 'radio' %}
+            {% include '@Configuration/Manage/_partials/inputs/radio.twig' %}
+        {% elseif setting.type == 'text' or setting.type == 'json' %}
+            {% include '@Configuration/Manage/_partials/inputs/textarea.twig' %}
+        {% elseif setting.type == 'integer' %}
+            {% include '@Configuration/Manage/_partials/inputs/integer.twig' %}
+        {% elseif setting.type == 'color' %}
+            {% include '@Configuration/Manage/_partials/inputs/color.twig' %}
+        {% else %}
+            {% include '@Configuration/Manage/_partials/inputs/text.twig' %}
+        {% endif %}
+
+        {# Help Text - Displayed below input #}
+        {% if setting.help_text %}
+            <small class="help-text">{{ setting.help_text }}</small>
+        {% endif %}
+    </div>
+</div>

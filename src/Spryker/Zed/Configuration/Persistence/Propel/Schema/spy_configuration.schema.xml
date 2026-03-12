@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<database xmlns="spryker:schema-01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="zed" xsi:schemaLocation="spryker:schema-01 https://static.spryker.com/schema-01.xsd" namespace="Orm\Zed\Configuration\Persistence" package="src.Orm.Zed.Configuration.Persistence">
+
+    <table name="spy_configuration_value" phpName="SpyConfigurationValue">
+        <column name="id_configuration_value" required="true" type="INTEGER" autoIncrement="true" primaryKey="true"/>
+        <column name="setting_key" required="true" size="255" type="VARCHAR"/>
+        <column name="scope" required="true" size="50" type="VARCHAR"/>
+        <column name="scope_identifier" size="255" type="VARCHAR"/>
+        <column name="value" required="true" type="LONGVARCHAR"/>
+
+        <unique name="spy_configuration_value-unique-setting_scope">
+            <unique-column name="setting_key"/>
+            <unique-column name="scope"/>
+            <unique-column name="scope_identifier"/>
+        </unique>
+
+        <index name="spy_configuration_value-setting_key">
+            <index-column name="setting_key"/>
+        </index>
+
+        <behavior name="timestampable"/>
+
+        <id-method-parameter value="spy_configuration_value_pk_seq"/>
+    </table>
+
+    <table name="spy_configuration_storage" identifierQuoting="true">
+        <column name="id_configuration_storage" type="INTEGER" primaryKey="true" autoIncrement="true"/>
+        <column name="scope" type="VARCHAR" size="50" required="true"/>
+        <column name="key" type="VARCHAR" size="255" required="true"/>
+        <column name="data" type="LONGVARCHAR" required="true"/>
+
+        <unique name="spy_configuration_storage-scope">
+            <unique-column name="scope"/>
+        </unique>
+        <unique name="spy_configuration_storage-key">
+            <unique-column name="key"/>
+        </unique>
+
+        <id-method-parameter value="spy_configuration_storage_pk_seq"/>
+
+        <behavior name="synchronization">
+            <parameter name="resource" value="configuration"/>
+            <parameter name="key_suffix_column" value="scope"/>
+            <parameter name="queue_group" value="sync.storage.configuration"/>
+            <parameter name="queue_pool" value="synchronizationPool"/>
+        </behavior>
+
+        <behavior name="timestampable"/>
+    </table>
+
+</database>

@@ -1,0 +1,561 @@
+/**
+ * Copyright (c) 2016-present Spryker Systems GmbH. All rights reserved.
+ * Use of this software requires acceptance of the Evaluation License Agreement. See LICENSE file.
+ */
+
+// Configuration Management
+
+.configuration-management {
+    position: relative;
+    min-height: calc(100vh - 200px);
+    padding-bottom: 80px;
+}
+
+.config-top-bar {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e3e3e3;
+    margin-bottom: 0;
+}
+
+.scope-selector {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    label {
+        margin: 0;
+        font-weight: 500;
+    }
+}
+
+.config-layout {
+    display: flex;
+    min-height: 600px;
+}
+
+// Sidebar Navigation
+
+.config-sidebar {
+    width: 250px;
+    background: #f8f8f8;
+    border-right: 1px solid #e3e3e3;
+}
+
+.nav-feature {
+    border-bottom: 1px solid #e3e3e3;
+
+    &.collapsed {
+        .feature-header .material-symbols-outlined {
+            transform: rotate(-90deg);
+        }
+
+        .feature-tabs {
+            display: none;
+        }
+    }
+}
+
+.feature-header {
+    padding: 14px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f0f0f0;
+    font-size: 13px;
+    text-transform: uppercase;
+    color: #333;
+
+    &:hover {
+        background: #e8e8e8;
+    }
+
+    .material-symbols-outlined {
+        transition: transform 0.3s;
+        font-size: 18px;
+        line-height: 1;
+    }
+}
+
+.feature-tabs {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: #fafafa;
+}
+
+.nav-tab {
+    padding: 12px 20px 12px 40px;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+    font-size: 13px;
+    color: #303030;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .material-symbols-outlined {
+        font-size: 18px;
+        line-height: 1;
+    }
+
+    &:hover {
+        background: #f5f5f5;
+    }
+
+    &.active {
+        background: #fff;
+        border-left-color: #1979c3;
+        color: #1979c3;
+        font-weight: 600;
+    }
+}
+
+// Main Content Area
+
+.config-content {
+    flex: 1;
+    padding: 30px 40px;
+    background: #fff;
+    max-width: 1046px;
+}
+
+// Setting Groups
+
+.setting-group {
+    margin-bottom: 50px;
+}
+
+.group-header {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e3e3e3;
+    color: #303030;
+}
+
+.group-description {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 25px 0;
+    line-height: 1.5;
+}
+
+.help-text {
+    display: block;
+    font-size: 12px;
+    color: #767676;
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+.setting-row {
+    margin-bottom: 30px;
+    padding: 20px 0;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    &.changed {
+        background: #fff;
+        border-left: 3px solid #11856e;
+        padding-left: 17px;
+        margin-left: -20px;
+    }
+
+    // Boolean row layout — flex with toggle on right
+    &.boolean-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 30px;
+    }
+
+    // Non-boolean row layout — single column
+    &.non-boolean-row {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+// Setting Label & Description
+
+.setting-label {
+    flex: 1;
+    max-width: 100%;
+    overflow-wrap: break-word;
+
+    label {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #303030;
+        flex-wrap: wrap;
+    }
+}
+
+.overrides-default-badge {
+    font-size: 9px;
+    font-weight: 500;
+    color: #1979c3;
+    background: #e3f2fd;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.pending-sync-badge {
+    font-size: 9px;
+    font-weight: 500;
+    color: #8a6d3b;
+    background: #fcf8e3;
+    padding: 3px 8px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.setting-description {
+    color: #666;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 4px;
+    max-width: 100%;
+    overflow-wrap: break-word;
+}
+
+.setting-note {
+    color: #666;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 4px;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    font-style: italic;
+}
+
+.help-icon {
+    color: #999;
+    cursor: help;
+    font-size: 14px;
+}
+
+// Setting Input Column
+
+.setting-input {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+// For boolean rows, input area should be minimal
+.boolean-row .setting-input {
+    flex-shrink: 0;
+    align-self: flex-start;
+}
+
+// Form Controls
+
+.config-input {
+    max-width: 100%;
+
+    &.inherited {
+        background: #f5f5f5;
+        color: #999;
+    }
+}
+
+.non-boolean-row .config-input {
+    width: 100%;
+}
+
+// Toggle Switch for Booleans
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 52px;
+    height: 28px;
+    vertical-align: middle;
+
+    input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+
+        &:checked + .toggle-slider {
+            background-color: #1979c3;
+
+            &:before {
+                transform: translateX(24px);
+            }
+        }
+
+        &:disabled + .toggle-slider {
+            background-color: #e3e3e3;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.3s;
+    border-radius: 28px;
+
+    &:before {
+        position: absolute;
+        content: '';
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.3s;
+        border-radius: 50%;
+    }
+}
+
+// Radio Buttons — Card Style
+
+.radio-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+
+.radio-option {
+    position: relative;
+    border: 2px solid #e3e3e3;
+    border-radius: 6px;
+    padding: 16px;
+    background: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        border-color: #b3b3b3;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    input[type='radio'] {
+        position: absolute;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    &.checked {
+        border-color: #1979c3;
+        background: #f0f7fc;
+
+        .radio-checkmark {
+            background: #1979c3;
+            border-color: #1979c3;
+
+            &::after {
+                content: '✓';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+            }
+        }
+    }
+}
+
+.radio-card-content {
+    position: relative;
+    padding-right: 36px;
+}
+
+.radio-card-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #303030;
+    margin: 0 0 6px 0;
+    display: block;
+}
+
+.radio-option-description {
+    color: #666;
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.radio-checkmark {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #e3e3e3;
+    background: #fff;
+    transition: all 0.2s ease;
+}
+
+// Use Default Link Container — Reserved Space
+
+.use-default-container {
+    min-height: 24px;
+    margin-top: 8px;
+}
+
+// Use Default Link
+
+.use-default-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #1979c3;
+    text-decoration: none;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+
+    &:hover {
+        text-decoration: underline;
+    }
+
+    i {
+        font-size: 11px;
+    }
+}
+
+.inherited-value-hint {
+    color: #999;
+    font-size: 12px;
+    font-style: italic;
+    margin-left: 5px;
+}
+
+// Info Messages
+
+.setting-info {
+    background: #e3f2fd;
+    border-left: 3px solid #2196f3;
+    padding: 10px 15px;
+    font-size: 12px;
+    color: #1976d2;
+    margin-top: 8px;
+    border-radius: 2px;
+
+    i {
+        margin-right: 6px;
+    }
+}
+
+// Save Bar
+
+.config-save-bar {
+    position: fixed;
+    bottom: 0;
+    left: 250px;
+    right: 0;
+    background: #fff;
+    border-top: 1px solid #11856e;
+    padding: 12px 30px;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08);
+    z-index: 999;
+
+    @media (max-width: 768px) {
+        left: 0;
+    }
+}
+
+.save-bar-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.changes-count {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #8a6d3b;
+
+    i {
+        color: #f0ad4e;
+    }
+}
+
+.save-bar-actions {
+    display: flex;
+    gap: 10px;
+}
+
+// Validation Errors
+
+.setting-row.has-error {
+    border-left: 3px solid #e74c3c;
+    padding-left: 17px;
+    margin-left: -20px;
+}
+
+.setting-error-message {
+    color: #e74c3c;
+    font-size: 12px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    i {
+        font-size: 13px;
+    }
+}
+
+// Search
+
+.config-search {
+    input {
+        border: 1px solid #ddd;
+        border-radius: 3px;
+        padding: 6px 12px;
+    }
+}
+
+// Read-Only Mode
+
+.config-read-only-notice {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    color: #856404;
+    font-size: 13px;
+    margin: 0 20px 0;
+    padding: 10px 15px;
+
+    i {
+        margin-right: 6px;
+    }
+}

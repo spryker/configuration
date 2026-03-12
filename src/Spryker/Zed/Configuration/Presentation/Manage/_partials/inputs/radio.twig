@@ -1,0 +1,23 @@
+<div class="radio-group">
+    {% for option in setting.options %}
+        <label class="radio-option {% if (setting.has_custom_value and setting.current_value == option.value) or (not setting.has_custom_value and setting.inherited_value == option.value) %}checked{% endif %}"
+               for="setting-{{ setting.key }}-{{ option.value }}">
+            <input type="radio"
+                   name="setting-{{ setting.key }}"
+                   id="setting-{{ setting.key }}-{{ option.value }}"
+                   value="{{ option.value }}"
+                   class="config-input"
+                   data-original-value="{{ setting.current_value }}"
+                   data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}"
+                   {% if (setting.has_custom_value and setting.current_value == option.value) or (not setting.has_custom_value and setting.inherited_value == option.value) %}checked{% endif %}
+                   {% if isEditable is defined and not isEditable %}disabled{% endif %}>
+            <div class="radio-card-content">
+                <span class="radio-card-label">{{ option.label | trans }}</span>
+                {% if option.description is defined %}
+                    <p class="radio-option-description">{{ option.description | trans }}</p>
+                {% endif %}
+            </div>
+            <span class="radio-checkmark"></span>
+        </label>
+    {% endfor %}
+</div>

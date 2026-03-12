@@ -1,0 +1,24 @@
+"Configuration Management",Konfigurationsverwaltung
+Settings,Einstellungen
+"Manage your store configuration and preferences","Verwalten Sie die Konfiguration und Einstellungen Ihres Shops"
+Scope:,Geltungsbereich:
+"Search settings...","Einstellungen suchen..."
+"Overrides Default","Überschreibt Standard"
+"Use Default","Standard verwenden"
+"unsaved changes","ungespeicherte Änderungen"
+"Reset Changes","Änderungen zurücksetzen"
+"Save Configuration","Konfiguration speichern"
+"Configuration saved successfully (%count% settings updated)","Konfiguration erfolgreich gespeichert (%count% Einstellungen aktualisiert)"
+"Some settings failed to save. Please check the errors.","Einige Einstellungen konnten nicht gespeichert werden. Bitte überprüfen Sie die Fehler."
+"Hold Ctrl/Cmd to select multiple","Halten Sie Strg/Cmd gedrückt, um mehrere auszuwählen"
+Global,Global
+"Default (All Stores)","Standard (Alle Stores)"
+"Are you sure you want to reset all changes?","Sind Sie sicher, dass Sie alle Änderungen zurücksetzen möchten?"
+"You have unsaved changes. Do you want to discard them and switch scope?","Sie haben nicht gespeicherte Änderungen. Möchten Sie diese verwerfen und den Geltungsbereich wechseln?"
+"You have unsaved changes. Do you want to discard them and switch tabs?","Sie haben nicht gespeicherte Änderungen. Möchten Sie diese verwerfen und den Tab wechseln?"
+"Changing this setting will reset the following dependent settings:%newline%%settings%%newline%Do you want to continue?","Das Ändern dieser Einstellung setzt die folgenden abhängigen Einstellungen zurück:%newline%%settings%%newline%Möchten Sie fortfahren?"
+"Error saving configuration: ","Fehler beim Speichern der Konfiguration: "
+"Error saving configuration. Please try again.","Fehler beim Speichern der Konfiguration. Bitte versuchen Sie es erneut."
+Saving...,"Wird gespeichert..."
+"Waiting for synchronisation","Warten auf Synchronisation"
+"You do not have permission to edit configuration settings.","Sie haben keine Berechtigung, Konfigurationseinstellungen zu bearbeiten."

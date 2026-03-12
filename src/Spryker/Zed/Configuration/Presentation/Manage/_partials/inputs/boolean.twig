@@ -1,0 +1,11 @@
+<label class="toggle-switch">
+    <input type="checkbox"
+           id="setting-{{ setting.key }}"
+           class="config-input boolean-toggle"
+           data-setting-type="boolean"
+           data-original-value="{{ setting.current_value }}"
+           data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}"
+           {% if setting.current_value == 'true' or (not setting.has_custom_value and setting.inherited_value == 'true') %}checked{% endif %}
+           {% if isEditable is defined and not isEditable %}disabled{% endif %}>
+    <span class="toggle-slider"></span>
+</label>

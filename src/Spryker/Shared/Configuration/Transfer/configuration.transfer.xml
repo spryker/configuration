@@ -1,0 +1,175 @@
+<?xml version="1.0"?>
+<transfers xmlns="spryker:transfer-01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="spryker:transfer-01 http://static.spryker.com/transfer-01.xsd">
+
+    <transfer name="ConfigurationSetting" strict="true">
+        <property name="key" type="string"/>
+        <property name="name" type="string"/>
+        <property name="description" type="string"/>
+        <property name="helpText" type="string"/>
+        <property name="placeholder" type="string"/>
+        <property name="note" type="string"/>
+        <property name="template" type="string"/>
+        <property name="featureKey" type="string"/>
+        <property name="tabKey" type="string"/>
+        <property name="tabName" type="string"/>
+        <property name="tabIcon" type="string"/>
+        <property name="groupKey" type="string"/>
+        <property name="type" type="string"/>
+        <property name="defaultValue" type="string"/>
+        <property name="options" type="array" singular="option"/>
+        <property name="constraints" type="array" singular="constraint"/>
+        <property name="dependencies" type="array" singular="dependency"/>
+        <property name="scopes" type="array" singular="scope"/>
+        <property name="isSecret" type="bool"/>
+        <property name="isStorefront" type="bool"/>
+        <property name="isEnabled" type="bool"/>
+        <property name="order" type="int"/>
+    </transfer>
+
+    <transfer name="ConfigurationValue" strict="true">
+        <property name="idConfigurationValue" type="int"/>
+        <property name="settingKey" type="string"/>
+        <property name="scope" type="string"/>
+        <property name="scopeIdentifier" type="string"/>
+        <property name="value" type="string"/>
+        <property name="setting" type="ConfigurationSetting"/>
+    </transfer>
+
+    <transfer name="ConfigurationScope">
+        <property name="key" type="string"/>
+        <property name="name" type="string"/>
+        <property name="identifier" type="string"/>
+        <property name="description" type="string"/>
+        <property name="isEnabled" type="bool"/>
+    </transfer>
+
+    <transfer name="ConfigurationFeature" strict="true">
+        <property name="key" type="string"/>
+        <property name="name" type="string"/>
+        <property name="description" type="string"/>
+        <property name="isEnabled" type="bool"/>
+        <property name="tabs" type="ConfigurationTab[]" singular="tab"/>
+    </transfer>
+
+    <transfer name="ConfigurationTab" strict="true">
+        <property name="key" type="string"/>
+        <property name="name" type="string"/>
+        <property name="description" type="string"/>
+        <property name="icon" type="string"/>
+        <property name="isEnabled" type="bool"/>
+    </transfer>
+
+    <transfer name="ConfigurationGroup" strict="true">
+        <property name="key" type="string"/>
+        <property name="name" type="string"/>
+        <property name="description" type="string"/>
+        <property name="scopes" type="array" singular="scope"/>
+        <property name="isEnabled" type="bool"/>
+        <property name="settings" type="ConfigurationSetting[]" singular="setting"/>
+    </transfer>
+
+    <transfer name="ConfigurationConstraint" strict="true">
+        <property name="type" type="string"/>
+        <property name="message" type="string"/>
+        <property name="options" type="array" singular="option"/>
+    </transfer>
+
+    <transfer name="ConfigurationDependency" strict="true">
+        <property name="settingKey" type="string"/>
+        <property name="value" type="string"/>
+    </transfer>
+
+    <transfer name="ConfigurationSyncResponse" strict="true">
+        <property name="isSuccess" type="bool"/>
+        <property name="processedCount" type="int"/>
+        <property name="errorMessages" type="array" singular="errorMessage"/>
+    </transfer>
+
+    <transfer name="ConfigurationSettingCollection" strict="true">
+        <property name="settings" type="ConfigurationSetting[]" singular="setting"/>
+    </transfer>
+
+    <transfer name="ConfigurationScopeCollection" strict="true">
+        <property name="scopes" type="ConfigurationScope[]" singular="scope"/>
+    </transfer>
+
+    <transfer name="ConfigurationValueRequest">
+        <property name="key" type="string"/>
+        <property name="scope" type="string"/>
+        <property name="scopeIdentifier" type="string"/>
+        <property name="scopes" type="ConfigurationScope[]" singular="scope"/>
+    </transfer>
+
+    <transfer name="ConfigurationValueResponse" strict="true">
+        <property name="value" type="string"/>
+        <property name="setting" type="ConfigurationSetting"/>
+    </transfer>
+
+    <transfer name="ConfigurationValidationRequest" strict="true">
+        <property name="key" type="string"/>
+        <property name="value" type="string"/>
+        <property name="scope" type="string"/>
+        <property name="scopeIdentifier" type="string"/>
+    </transfer>
+
+    <transfer name="ConfigurationValidationResponse" strict="true">
+        <property name="isValid" type="bool"/>
+        <property name="errors" type="ConfigurationError[]" singular="error"/>
+    </transfer>
+
+    <transfer name="ConfigurationError" strict="true">
+        <property name="settingKey" type="string"/>
+        <property name="message" type="string"/>
+    </transfer>
+
+    <transfer name="ConfigurationValueCollectionRequest" strict="true">
+        <property name="configurationValues" type="ConfigurationValue[]" singular="configurationValue"/>
+        <property name="deletionKeys" type="ConfigurationValueDeletion[]" singular="deletionKey"/>
+    </transfer>
+
+    <transfer name="ConfigurationValueDeletion" strict="true">
+        <property name="settingKey" type="string"/>
+        <property name="scope" type="string"/>
+        <property name="scopeIdentifier" type="string"/>
+    </transfer>
+
+    <transfer name="ConfigurationValueCollectionResponse" strict="true">
+        <property name="isSuccess" type="bool"/>
+        <property name="savedCount" type="int"/>
+        <property name="errors" type="ConfigurationError[]" singular="error"/>
+    </transfer>
+
+    <transfer name="ConfigurationSettingValuesCriteria" strict="true">
+        <property name="settingKeys" type="array" singular="settingKey"/>
+        <property name="scope" type="string"/>
+        <property name="scopeIdentifier" type="string"/>
+    </transfer>
+
+    <!--
+        Holds resolved values for a collection of settings.
+        directValues: keyed by settingKey, the value saved at exactly (scope, scopeIdentifier).
+        inheritedValues: keyed by settingKey, the value resolved by walking up the scope hierarchy.
+    -->
+    <transfer name="ConfigurationSettingValueCollection" strict="true">
+        <property name="directValues" type="array" singular="directValue"/>
+        <property name="inheritedValues" type="array" singular="inheritedValue"/>
+    </transfer>
+
+    <transfer name="ConfigurationStorage" strict="true">
+        <property name="key" type="string"/>
+        <property name="settingKey" type="string"/>
+        <property name="scope" type="string"/>
+        <property name="scopeIdentifier" type="string"/>
+        <property name="value" type="string"/>
+        <property name="type" type="string"/>
+    </transfer>
+
+    <transfer name="SynchronizationData">
+        <property name="reference" type="string"/>
+    </transfer>
+
+    <transfer name="EventEntity">
+        <property name="additionalValues" type="array" singular="additionalValue"/>
+    </transfer>
+
+</transfers>

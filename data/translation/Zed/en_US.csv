@@ -1,0 +1,24 @@
+"Configuration Management","Configuration Management"
+Settings,Settings
+"Manage your store configuration and preferences","Manage your store configuration and preferences"
+Scope:,Scope:
+"Search settings...","Search settings..."
+"Overrides Default","Overrides Default"
+"Use Default","Use Default"
+"unsaved changes","unsaved changes"
+"Reset Changes","Reset Changes"
+"Save Configuration","Save Configuration"
+"Configuration saved successfully (%count% settings updated)","Configuration saved successfully (%count% settings updated)"
+"Some settings failed to save. Please check the errors.","Some settings failed to save. Please check the errors."
+"Hold Ctrl/Cmd to select multiple","Hold Ctrl/Cmd to select multiple"
+Global,Global
+"Default (All Stores)","Default (All Stores)"
+"Are you sure you want to reset all changes?","Are you sure you want to reset all changes?"
+"You have unsaved changes. Do you want to discard them and switch scope?","You have unsaved changes. Do you want to discard them and switch scope?"
+"You have unsaved changes. Do you want to discard them and switch tabs?","You have unsaved changes. Do you want to discard them and switch tabs?"
+"Changing this setting will reset the following dependent settings:%newline%%settings%%newline%Do you want to continue?","Changing this setting will reset the following dependent settings:%newline%%settings%%newline%Do you want to continue?"
+"Error saving configuration: ","Error saving configuration: "
+"Error saving configuration. Please try again.","Error saving configuration. Please try again."
+Saving...,Saving...
+"Waiting for synchronisation","Waiting for synchronisation"
+"You do not have permission to edit configuration settings.","You do not have permission to edit configuration settings."

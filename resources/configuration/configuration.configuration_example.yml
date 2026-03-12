@@ -1,0 +1,603 @@
+# yaml-language-server: $schema=./configuration.schema.json
+features:
+    - key: system
+      name: System Configuration
+      description: Core system settings
+      enabled: true
+      tabs:
+          - key: general
+            name: General
+            icon: settings
+            description: General system settings
+            enabled: true
+            groups:
+                - key: basic
+                  name: Basic Settings
+                  description: Basic system configuration
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: site_name
+                        name: Site Name
+                        description: The name of the site displayed in the storefront header
+                        placeholder: Enter your store name
+                        help_text: This name will appear in the storefront header and page titles
+                        type: string
+                        default_value: My Store
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: required
+                              message: Site name is required
+                            - type: max
+                              message: Site name must be less than 255 characters
+                              options:
+                                  max: 255
+
+                      - key: site_description
+                        name: Site Description
+                        description: Meta description for SEO purposes
+                        type: string
+                        default_value: Welcome to our online store
+                        scopes:
+                            - global
+                            - store
+                            - locale
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: max
+                              message: Description must be less than 500 characters
+                              options:
+                                  max: 500
+
+                      - key: maintenance_mode
+                        name: Maintenance Mode
+                        description: Enable maintenance mode to restrict access to the storefront
+                        type: boolean
+                        default_value: false
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: required
+                              message: Maintenance mode setting is required
+
+                      - key: items_per_page
+                        name: Items Per Page
+                        description: Number of products to display per page in catalog
+                        type: integer
+                        default_value: 24
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: required
+                              message: Items per page is required
+                            - type: min
+                              message: Must be at least 1 item per page
+                              options:
+                                  min: 1
+                            - type: max
+                              message: Cannot exceed 100 items per page
+                              options:
+                                  max: 100
+
+                - key: contact
+                  name: Contact Information
+                  description: Contact details displayed in storefront
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: contact_email
+                        name: Contact Email
+                        description: Primary contact email address
+                        placeholder: contact@example.com
+                        help_text: Customers will see this email in the footer and contact page
+                        type: string
+                        default_value: info@example.com
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: required
+                              message: Contact email is required
+                            - type: email
+                              message: Must be a valid email address
+
+                      - key: contact_phone
+                        name: Contact Phone
+                        description: Customer service phone number
+                        type: string
+                        default_value: +1-800-123-4567
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: max
+                              message: Phone number must be less than 50 characters
+                              options:
+                                  max: 50
+
+                      - key: support_hours
+                        name: Support Hours
+                        description: Customer support operating hours
+                        type: string
+                        default_value: Mon-Fri 9am-5pm EST
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+
+          - key: integrations
+            name: Integrations
+            icon: cable
+            description: Third-party service integrations
+            enabled: true
+            groups:
+                - key: payment
+                  name: Payment Gateways
+                  description: Payment provider configuration
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: stripe_api_key
+                        name: Stripe API Key
+                        description: Stripe secret API key for payment processing
+                        type: string
+                        default_value: ''
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: true
+                        storefront: false
+                        constraints:
+                            - type: required
+                              message: Stripe API key is required when Stripe is enabled
+
+                      - key: stripe_webhook_secret
+                        name: Stripe Webhook Secret
+                        description: Secret for validating Stripe webhook events
+                        type: string
+                        default_value: ''
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: true
+                        storefront: false
+
+                      - key: payment_methods
+                        name: Enabled Payment Methods
+                        description: List of enabled payment methods
+                        type: text
+                        default_value: ['credit_card', 'paypal']
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+
+                - key: shipping
+                  name: Shipping Providers
+                  description: Shipping and fulfillment configuration
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: shipping_api_url
+                        name: Shipping API URL
+                        description: Endpoint for shipping provider API
+                        type: string
+                        default_value: https://api.shipping-provider.com
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: false
+                        storefront: false
+                        constraints:
+                            - type: required
+                              message: Shipping API URL is required
+                            - type: url
+                              message: Must be a valid URL
+
+                      - key: shipping_api_token
+                        name: Shipping API Token
+                        description: Authentication token for shipping provider
+                        type: string
+                        default_value: ''
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: true
+                        storefront: false
+
+                      - key: free_shipping_threshold
+                        name: Free Shipping Threshold
+                        description: Minimum order value for free shipping
+                        type: float
+                        default_value: 50.00
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: min
+                              message: Threshold must be at least 0
+                              options:
+                                  min: 0
+
+    - key: marketing
+      name: Marketing & Analytics
+      description: Marketing tools and analytics configuration
+      enabled: true
+      tabs:
+          - key: analytics
+            name: Analytics
+            icon: trending_up
+            description: Web analytics and tracking
+            enabled: true
+            groups:
+                - key: google_analytics
+                  name: Google Analytics
+                  description: Google Analytics configuration
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: ga_tracking_id
+                        name: Google Analytics Tracking ID
+                        description: GA4 measurement ID
+                        type: string
+                        default_value: ''
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: regex
+                              message: Must be a valid GA4 measurement ID (G-XXXXXXXXXX)
+                              options:
+                                  pattern: '^G-[A-Z0-9]{10}$'
+
+                      - key: ga_enable_ecommerce
+                        name: Enable Enhanced Ecommerce
+                        description: Track ecommerce events in Google Analytics
+                        type: boolean
+                        default_value: true
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+
+                - key: email_marketing
+                  name: Email Marketing
+                  description: Email campaign and newsletter settings
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: newsletter_provider
+                        name: Newsletter Provider
+                        description: Email marketing service provider
+                        type: string
+                        default_value: mailchimp
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: false
+                        storefront: false
+                        constraints:
+                            - type: choice
+                              message: Must be one of the supported providers
+                              options:
+                                  choices: ['mailchimp', 'sendgrid', 'klaviyo']
+
+                      - key: newsletter_api_key
+                        name: Newsletter API Key
+                        description: API key for email marketing provider
+                        type: string
+                        default_value: ''
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: true
+                        storefront: false
+
+                      - key: newsletter_list_id
+                        name: Newsletter List ID
+                        description: Default mailing list ID for newsletter subscriptions
+                        type: string
+                        default_value: ''
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: false
+
+          - key: promotions
+            name: Promotions
+            icon: local_offer
+            description: Promotional campaigns and discounts
+            enabled: true
+            groups:
+                - key: discounts
+                  name: Discount Rules
+                  description: Global discount configuration
+                  scopes:
+                      - global
+                      - store
+                      - customer_group
+                  enabled: true
+                  settings:
+                      - key: max_discount_percentage
+                        name: Maximum Discount Percentage
+                        description: Maximum discount percentage allowed per order
+                        type: integer
+                        default_value: 80
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: false
+                        constraints:
+                            - type: required
+                              message: Maximum discount percentage is required
+                            - type: min
+                              message: Must be at least 0
+                              options:
+                                  min: 0
+                            - type: max
+                              message: Cannot exceed 100
+                              options:
+                                  max: 100
+
+                      - key: stackable_promotions
+                        name: Allow Stackable Promotions
+                        description: Enable combining multiple promotions in a single order
+                        type: boolean
+                        default_value: false
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: false
+
+    - key: customer
+      name: Customer Experience
+      description: Customer account and shopping experience settings
+      enabled: true
+      tabs:
+          - key: account
+            name: Account Settings
+            description: Customer account management
+            enabled: true
+            groups:
+                - key: registration
+                  name: Registration
+                  description: Customer registration settings
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: require_email_verification
+                        name: Require Email Verification
+                        description: Customers must verify email before account activation
+                        type: boolean
+                        default_value: true
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: false
+                        storefront: false
+
+                      - key: password_min_length
+                        name: Minimum Password Length
+                        description: Minimum number of characters required for passwords
+                        type: integer
+                        default_value: 8
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: false
+                        storefront: false
+                        constraints:
+                            - type: required
+                              message: Password minimum length is required
+                            - type: min
+                              message: Must be at least 6 characters
+                              options:
+                                  min: 6
+                            - type: max
+                              message: Cannot exceed 128 characters
+                              options:
+                                  max: 128
+
+                      - key: allowed_domains
+                        name: Allowed Email Domains
+                        description: Whitelist of email domains for registration (empty for all)
+                        type: text
+                        default_value: ''
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: false
+
+                - key: loyalty
+                  name: Loyalty Program
+                  description: Customer loyalty and rewards
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: points_per_dollar
+                        name: Points Per Dollar Spent
+                        description: Loyalty points earned per dollar spent
+                        type: float
+                        default_value: 1.0
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: min
+                              message: Must be at least 0
+                              options:
+                                  min: 0
+
+                      - key: points_expiry_days
+                        name: Points Expiry Days
+                        description: Number of days until loyalty points expire (0 for never)
+                        type: integer
+                        default_value: 365
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: min
+                              message: Must be 0 or greater
+                              options:
+                                  min: 0
+
+          - key: shopping
+            name: Shopping Experience
+            description: Shopping cart and checkout settings
+            enabled: true
+            groups:
+                - key: cart
+                  name: Shopping Cart
+                  description: Cart behavior and limits
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: max_cart_items
+                        name: Maximum Cart Items
+                        description: Maximum number of items allowed in cart
+                        type: integer
+                        default_value: 100
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: required
+                              message: Maximum cart items is required
+                            - type: min
+                              message: Must be at least 1
+                              options:
+                                  min: 1
+
+                      - key: cart_expiry_days
+                        name: Cart Expiry Days
+                        description: Number of days until abandoned cart is cleared
+                        type: integer
+                        default_value: 30
+                        scopes:
+                            - global
+                        enabled: true
+                        secret: false
+                        storefront: false
+                        constraints:
+                            - type: min
+                              message: Must be at least 1 day
+                              options:
+                                  min: 1
+
+                      - key: guest_checkout_enabled
+                        name: Enable Guest Checkout
+                        description: Allow customers to checkout without creating an account
+                        type: boolean
+                        default_value: true
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+
+                - key: wishlist
+                  name: Wishlist
+                  description: Wishlist functionality settings
+                  scopes:
+                      - global
+                      - store
+                  enabled: true
+                  settings:
+                      - key: max_wishlist_items
+                        name: Maximum Wishlist Items
+                        description: Maximum number of items per wishlist
+                        type: integer
+                        default_value: 50
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        constraints:
+                            - type: min
+                              message: Must be at least 1
+                              options:
+                                  min: 1
+
+                      - key: wishlist_sharing_enabled
+                        name: Enable Wishlist Sharing
+                        description: Allow customers to share wishlists via link
+                        type: boolean
+                        default_value: true
+                        scopes:
+                            - global
+                            - store
+                        enabled: true
+                        secret: false
+                        storefront: true

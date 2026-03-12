@@ -1,0 +1,412 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema#",
+    "$id": "https://spryker.com/schemas/configuration-schema-v1.json",
+    "title": "Spryker Configuration Management Schema",
+    "description": "Schema for defining configuration settings for Spryker Configuration Management functionality",
+    "type": "object",
+    "required": ["features"],
+    "properties": {
+        "features": {
+            "type": "array",
+            "description": "List of configuration features",
+            "items": {
+                "$ref": "#/definitions/feature"
+            }
+        }
+    },
+    "definitions": {
+        "feature": {
+            "type": "object",
+            "description": "A feature groups related configuration tabs together",
+            "required": ["key", "name", "tabs"],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "Unique identifier for the feature (e.g., 'system', 'marketing')",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the feature",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Detailed description of the feature",
+                    "maxLength": 1000
+                },
+                "order": {
+                    "type": "integer",
+                    "description": "Sort order for rendering (lower values appear first)",
+                    "default": 0
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Whether this feature is enabled",
+                    "default": true
+                },
+                "tabs": {
+                    "type": "array",
+                    "description": "Tabs within this feature",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/tab"
+                    }
+                }
+            }
+        },
+        "tab": {
+            "type": "object",
+            "description": "A tab organizes related configuration groups",
+            "required": ["key", "name", "enabled", "groups"],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "Unique identifier for the tab within the feature",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the tab",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Detailed description of the tab",
+                    "maxLength": 1000
+                },
+                "icon": {
+                    "type": "string",
+                    "description": "Icon class for the tab (e.g., 'fa fa-cog' for Font Awesome)",
+                    "maxLength": 100
+                },
+                "order": {
+                    "type": "integer",
+                    "description": "Sort order for rendering (lower values appear first)",
+                    "default": 0
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Whether this tab is enabled",
+                    "default": true
+                },
+                "groups": {
+                    "type": "array",
+                    "description": "Setting groups within this tab",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/group"
+                    }
+                }
+            }
+        },
+        "group": {
+            "type": "object",
+            "description": "A group contains related configuration settings",
+            "required": ["key", "name", "scopes", "enabled", "settings"],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "Unique identifier for the group within the tab",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the group",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Detailed description of the group",
+                    "maxLength": 1000
+                },
+                "scopes": {
+                    "type": "array",
+                    "description": "Available scopes for settings in this group",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/scope"
+                    }
+                },
+                "order": {
+                    "type": "integer",
+                    "description": "Sort order for rendering (lower values appear first)",
+                    "default": 0
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Whether this group is enabled",
+                    "default": true
+                },
+                "settings": {
+                    "type": "array",
+                    "description": "Configuration settings within this group",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/setting"
+                    }
+                }
+            }
+        },
+        "setting": {
+            "type": "object",
+            "description": "A configuration setting definition",
+            "required": ["key", "name", "type", "scopes", "enabled", "secret", "storefront"],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "Unique identifier for the setting (combined with feature and group)",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the setting",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Detailed description of what this setting controls",
+                    "maxLength": 1000
+                },
+                "help_text": {
+                    "type": "string",
+                    "description": "Additional help text displayed below the input field",
+                    "maxLength": 500
+                },
+                "placeholder": {
+                    "type": "string",
+                    "description": "Placeholder text for input and textarea fields",
+                    "maxLength": 255
+                },
+                "note": {
+                    "type": "string",
+                    "description": "Additional note displayed below the setting description",
+                    "maxLength": 1000
+                },
+                "template": {
+                    "type": "string",
+                    "description": "Custom Twig template path for rendering the input (e.g., '@MyModule/Configuration/custom-input.twig'). Overrides the default type-based input widget.",
+                    "maxLength": 255
+                },
+                "type": {
+                    "type": "string",
+                    "description": "Data type of the setting value",
+                    "enum": [
+                        "string",
+                        "integer",
+                        "float",
+                        "boolean",
+                        "text",
+                        "json",
+                        "select",
+                        "multiselect",
+                        "radio",
+                        "color"
+                    ]
+                },
+                "default_value": {
+                    "description": "Default value for this setting (type must match the 'type' field)"
+                },
+                "options": {
+                    "type": "array",
+                    "description": "Available options for select, multiselect, and radio types",
+                    "items": {
+                        "$ref": "#/definitions/option"
+                    }
+                },
+                "scopes": {
+                    "type": "array",
+                    "description": "Scopes where this setting can be configured",
+                    "minItems": 1,
+                    "items": {
+                        "$ref": "#/definitions/scope"
+                    }
+                },
+                "order": {
+                    "type": "integer",
+                    "description": "Sort order for rendering (lower values appear first)",
+                    "default": 0
+                },
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Whether this setting is enabled",
+                    "default": true
+                },
+                "secret": {
+                    "type": "boolean",
+                    "description": "Whether this setting contains sensitive data (e.g., API keys, passwords)",
+                    "default": false
+                },
+                "storefront": {
+                    "type": "boolean",
+                    "description": "Whether this setting should be available in the storefront via Publish & Sync",
+                    "default": false
+                },
+                "constraints": {
+                    "type": "array",
+                    "description": "Validation constraints for this setting",
+                    "items": {
+                        "$ref": "#/definitions/constraint"
+                    }
+                }
+            }
+        },
+        "scope": {
+            "type": "string",
+            "description": "Configuration scope level (hierarchy: customer > customer_group > locale > store > global)",
+            "enum": ["global", "store", "locale", "customer_group", "customer"]
+        },
+        "option": {
+            "type": "object",
+            "description": "An option for select, multiselect, or radio input types",
+            "required": ["value", "label"],
+            "properties": {
+                "value": {
+                    "type": "string",
+                    "description": "The internal value stored when this option is selected",
+                    "minLength": 1
+                },
+                "label": {
+                    "type": "string",
+                    "description": "The display label shown to users",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Optional description for radio buttons to explain the option",
+                    "maxLength": 500
+                }
+            }
+        },
+        "constraint": {
+            "type": "object",
+            "description": "A validation constraint for a setting",
+            "required": ["type", "message"],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "description": "Type of validation constraint",
+                    "enum": ["required", "min", "max", "email", "url", "regex", "choice", "length", "range"]
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Error message to display when validation fails",
+                    "minLength": 1,
+                    "maxLength": 500
+                },
+                "options": {
+                    "type": "object",
+                    "description": "Constraint-specific options",
+                    "properties": {
+                        "min": {
+                            "type": "number",
+                            "description": "Minimum value (for min, range constraints) or minimum length (for length constraint)"
+                        },
+                        "max": {
+                            "type": "number",
+                            "description": "Maximum value (for max, range constraints) or maximum length (for length constraint)"
+                        },
+                        "pattern": {
+                            "type": "string",
+                            "description": "Regular expression pattern (for regex constraint)"
+                        },
+                        "choices": {
+                            "type": "array",
+                            "description": "Allowed values (for choice constraint)",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "min"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "options": {
+                                "required": ["min"]
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "max"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "options": {
+                                "required": ["max"]
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "range"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "options": {
+                                "required": ["min", "max"]
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "regex"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "options": {
+                                "required": ["pattern"]
+                            }
+                        }
+                    }
+                },
+                {
+                    "if": {
+                        "properties": {
+                            "type": {
+                                "const": "choice"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "options": {
+                                "required": ["choices"]
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

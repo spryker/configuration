@@ -1,0 +1,7 @@
+<textarea id="setting-{{ setting.key }}"
+          class="form-control config-input"
+          rows="4"
+          {% if setting.placeholder %}placeholder="{{ setting.placeholder }}"{% endif %}
+          data-original-value="{{ setting.current_value }}"
+          data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}"
+          {% if isEditable is defined and not isEditable %}disabled{% endif %}>{{ setting.has_custom_value ? setting.current_value : setting.inherited_value }}</textarea>

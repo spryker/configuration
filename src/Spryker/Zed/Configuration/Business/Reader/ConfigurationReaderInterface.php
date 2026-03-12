@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Copyright © 2016-present Spryker Systems GmbH. All rights reserved.
+ * Use of this software requires acceptance of the Evaluation License Agreement. See LICENSE file.
+ */
+
+namespace Spryker\Zed\Configuration\Business\Reader;
+
+use Generated\Shared\Transfer\ConfigurationValueRequestTransfer;
+
+interface ConfigurationReaderInterface
+{
+    public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed;
+}
