@@ -57,6 +57,22 @@ features:
                               message: Description must be less than 500 characters
                               options:
                                   max: 500
+                        sanitize_xss:
+                            allow_safe_elements: true # use W3C safe elements baseline
+                            allow_static_elements: true # use W3C static elements baseline (broader)
+                            force_https_urls: true # rewrite http:// links to https://
+                            allow_relative_links: true # allow relative URLs in href
+                            allowed_link_schemes: # override allowed link URL schemes
+                                - https
+                                - mailto
+                            allowed_link_hosts: # restrict link hosts (default: all allowed)
+                                - example.com
+                            allow_elements:
+                                a: ['href', 'class']
+                                strong: []
+                                em: []
+                            allow_attributes:
+                                data-custom: '*'
 
                       - key: maintenance_mode
                         name: Maintenance Mode

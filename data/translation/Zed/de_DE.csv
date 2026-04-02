@@ -22,3 +22,17 @@ Global,Global
 Saving...,"Wird gespeichert..."
 "Waiting for synchronisation","Warten auf Synchronisation"
 "You do not have permission to edit configuration settings.","Sie haben keine Berechtigung, Konfigurationseinstellungen zu bearbeiten."
+"Max size: %size%","Maximale Größe: %size%"
+Upload,Hochladen
+Cancel,Abbrechen
+"Select file","Datei auswählen"
+"Change File","Datei ändern"
+"Upload File","Datei hochladen"
+"Recommended size: %width%px x %height%px","Empfohlene Größe: %width%px x %height%px"
+"Allowed file types: %types%","Erlaubte Dateitypen: %types%"
+"Max file size: %size%","Maximale Dateigröße: %size%"
+"Please select a file.","Bitte wählen Sie eine Datei aus."
+"Please select a file to upload.","Bitte wählen Sie eine Datei zum Hochladen aus."
+"The uploaded file type is not allowed.","Der hochgeladene Dateityp ist nicht erlaubt."
+"Invalid setting key.","Ungültiger Einstellungsschlüssel."
+"An error occurred while saving the file.","Beim Speichern der Datei ist ein Fehler aufgetreten."

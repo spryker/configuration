@@ -334,6 +334,19 @@
                 input.addEventListener('input', () => this.handleInputChange(input));
             });
 
+            document.querySelectorAll('.js-color-preview').forEach((preview) => {
+                const colorInput = preview.querySelector('.js-color-swatch-input');
+                const hexPreview = preview.querySelector('.js-color-hex-preview');
+
+                colorInput?.addEventListener('input', () => {
+                    preview.style.setProperty('--input-color', colorInput.value);
+
+                    if (hexPreview) {
+                        hexPreview.textContent = colorInput.value;
+                    }
+                });
+            });
+
             document.querySelectorAll('.use-default-link').forEach((link) => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -462,6 +475,45 @@
             }
         },
 
+        updateFilePreview: function (settingRow, input) {
+            const fileContainer = settingRow.querySelector('.js-file-upload-setting');
+
+            if (!fileContainer) {
+                return;
+            }
+
+            const preview = fileContainer.querySelector('.js-file-setting-preview');
+            const trigger = fileContainer.querySelector('.js-file-upload-trigger');
+            const url = input.value;
+
+            if (url) {
+                if (!preview) {
+                    preview = document.createElement('div');
+                    preview.className = 'file-setting-preview js-file-setting-preview';
+                    trigger.insertAdjacentElement('afterend', preview);
+                }
+
+                preview.innerHTML =
+                    '<img src="' + this.escapeHtml(url) + '" alt="" class="img-thumbnail" style="max-height:40px;">';
+
+                if (trigger) {
+                    trigger.innerHTML =
+                        '<span class="material-symbols-outlined">upload</span> ' +
+                        this.escapeHtml(trigger.dataset.labelChange);
+                }
+            } else {
+                if (preview) {
+                    preview.remove();
+                }
+
+                if (trigger) {
+                    trigger.innerHTML =
+                        '<span class="material-symbols-outlined">upload</span> ' +
+                        this.escapeHtml(trigger.dataset.labelUpload);
+                }
+            }
+        },
+
         handleRadioChange: function (input) {
             if (!input.checked) {
                 return;
@@ -510,7 +562,10 @@
                     }
                 } else {
                     input.value = inheritedValue;
+                    input.dispatchEvent(new Event('input'));
                 }
+
+                this.updateFilePreview(settingRow, input);
             }
 
             const originalData = this.originalValues.get(settingKey);
@@ -519,10 +574,6 @@
                 // Queue a delete in the regular save flow
                 this.changes.set(settingKey, { value: null, useDefault: true });
                 settingRow.classList.add('changed');
-
-                originalData.displayValue = inheritedValue;
-                originalData.value = '';
-                this.originalValues.set(settingKey, originalData);
             } else {
                 // Simply revert the pending unsaved edit
                 this.changes.delete(settingKey);
@@ -626,7 +677,7 @@
 
                 const errorEl = document.createElement('div');
                 errorEl.className = 'setting-error-message';
-                errorEl.innerHTML = '<i class="fa fa-exclamation-circle"></i> ' + this.escapeHtml(message);
+                errorEl.innerHTML = '<span class="material-symbols-outlined">error</span> ' + this.escapeHtml(message);
 
                 const inputContainer = row.querySelector('.setting-input');
 
@@ -683,12 +734,14 @@
                     }
                 } else {
                     input.value = originalData.displayValue;
+                    input.dispatchEvent(new Event('input'));
                 }
 
                 const settingRow = input.closest('.setting-row');
 
                 if (settingRow) {
                     this.updateUseDefaultUI(settingRow, originalData.hasCustomValue);
+                    this.updateFilePreview(settingRow, input);
                 }
             });
 

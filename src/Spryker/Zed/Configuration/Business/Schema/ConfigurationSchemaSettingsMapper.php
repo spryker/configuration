@@ -93,9 +93,11 @@ class ConfigurationSchemaSettingsMapper implements ConfigurationSchemaSettingsMa
             ->setConstraints($setting[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] ?? [])
             ->setDependencies($setting[ConfigurationConstants::SCHEMA_KEY_DEPENDENCIES] ?? [])
             ->setScopes($setting[ConfigurationConstants::SCHEMA_KEY_SCOPES] ?? [])
+            ->setFileUpload($setting[ConfigurationConstants::SCHEMA_KEY_FILE_UPLOAD] ?? [])
             ->setIsSecret($setting[ConfigurationConstants::SCHEMA_KEY_SECRET] ?? false)
             ->setIsStorefront($setting[ConfigurationConstants::SCHEMA_KEY_STOREFRONT] ?? false)
             ->setIsEnabled($setting[ConfigurationConstants::SCHEMA_KEY_ENABLED] ?? true)
-            ->setOrder($setting[ConfigurationConstants::SCHEMA_KEY_ORDER] ?? 0);
+            ->setOrder($setting[ConfigurationConstants::SCHEMA_KEY_ORDER] ?? 0)
+            ->setSanitizeXss($setting[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS] ?? []);
     }
 }

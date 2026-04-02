@@ -22,3 +22,17 @@ Global,Global
 Saving...,Saving...
 "Waiting for synchronisation","Waiting for synchronisation"
 "You do not have permission to edit configuration settings.","You do not have permission to edit configuration settings."
+"Max size: %size%","Max size: %size%"
+Upload,Upload
+Cancel,Cancel
+"Select file","Select file"
+"Change File","Change File"
+"Upload File","Upload File"
+"Recommended size: %width%px x %height%px","Recommended size: %width%px x %height%px"
+"Allowed file types: %types%","Allowed file types: %types%"
+"Max file size: %size%","Max file size: %size%"
+"Please select a file.","Please select a file."
+"Please select a file to upload.","Please select a file to upload."
+"The uploaded file type is not allowed.","The uploaded file type is not allowed."
+"Invalid setting key.","Invalid setting key."
+"An error occurred while saving the file.","An error occurred while saving the file."

@@ -32,6 +32,24 @@ interface ConfigurationClientInterface
 
     /**
      * Specification:
+     * - Requires `ConfigurationValueRequestTransfer.key` to be set (used as prefix).
+     * - Executes `ConfigurationValueRequestExpanderPluginInterface` plugin stack once to enrich scope context.
+     * - Looks up all setting definitions from the merged configuration schema whose keys share the prefix.
+     * - Resolves each value by walking the scope hierarchy from most specific to global.
+     * - Casts each raw value to the native PHP type defined by the setting type (string, integer, float, boolean, json).
+     * - Returns the schema-defined default value when no stored value exists at any scope level.
+     * - Returns an empty array when no settings match the given prefix.
+     *
+     * @api
+     *
+     * @param \Generated\Shared\Transfer\ConfigurationValueRequestTransfer $configurationValueRequestTransfer
+     *
+     * @return array<string, mixed>
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array;
+
+    /**
+     * Specification:
      * - Reads all raw configuration values from key-value storage (Redis) for the given scope.
      * - Uses the synchronization key pattern to generate the storage key.
      * - Returns a map of `settingKey => rawValue` pairs.

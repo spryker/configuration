@@ -7,7 +7,9 @@
 
 namespace Spryker\Zed\Configuration\Business;
 
+use Spryker\Service\FileSystem\FileSystemServiceInterface;
 use Spryker\Service\UtilEncryption\UtilEncryptionServiceInterface;
+use Spryker\Service\UtilSanitizeXss\UtilSanitizeXssServiceInterface;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptor;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptorInterface;
 use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReader;
@@ -18,10 +20,14 @@ use Spryker\Zed\Configuration\Business\Cache\ConfigurationCacheManager;
 use Spryker\Zed\Configuration\Business\Cache\ConfigurationCacheManagerInterface;
 use Spryker\Zed\Configuration\Business\Collector\ConfigurationValuesCollector;
 use Spryker\Zed\Configuration\Business\Collector\ConfigurationValuesCollectorInterface;
+use Spryker\Zed\Configuration\Business\Creator\ConfigurationFileUploadCreator;
+use Spryker\Zed\Configuration\Business\Creator\ConfigurationFileUploadCreatorInterface;
 use Spryker\Zed\Configuration\Business\Reader\ConfigurationReader;
 use Spryker\Zed\Configuration\Business\Reader\ConfigurationReaderInterface;
 use Spryker\Zed\Configuration\Business\Resolver\ConfigurationScopeIdentifierResolver;
 use Spryker\Zed\Configuration\Business\Resolver\ConfigurationScopeIdentifierResolverInterface;
+use Spryker\Zed\Configuration\Business\Sanitizer\ConfigurationValueSanitizer;
+use Spryker\Zed\Configuration\Business\Sanitizer\ConfigurationValueSanitizerInterface;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProvider;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaSettingsMapper;
@@ -41,6 +47,7 @@ use Spryker\Zed\Configuration\Business\Validator\ConfigurationValueValidatorInte
 use Spryker\Zed\Configuration\Business\Writer\ConfigurationValueWriter;
 use Spryker\Zed\Configuration\Business\Writer\ConfigurationValueWriterInterface;
 use Spryker\Zed\Configuration\ConfigurationDependencyProvider;
+use Spryker\Zed\FileManager\Business\FileManagerFacadeInterface;
 use Spryker\Zed\Kernel\Business\AbstractBusinessFactory;
 
 /**
@@ -108,7 +115,21 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
             $this->createConfigurationSchemaProvider(),
             $this->getConfigurationValuePreSavePlugins(),
             $this->getConfigurationValuePostSavePlugins(),
+            $this->createConfigurationValueSanitizer(),
         );
+    }
+
+    public function createConfigurationValueSanitizer(): ConfigurationValueSanitizerInterface
+    {
+        return new ConfigurationValueSanitizer(
+            $this->createConfigurationSchemaProvider(),
+            $this->getUtilSanitizeXssService(),
+        );
+    }
+
+    public function getUtilSanitizeXssService(): UtilSanitizeXssServiceInterface
+    {
+        return $this->getProvidedDependency(ConfigurationDependencyProvider::SERVICE_UTIL_SANITIZE_XSS);
     }
 
     public function createConfigurationValueValidator(): ConfigurationValueValidatorInterface
@@ -193,6 +214,24 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
     public function getConfigurationValueRequestExpanderPlugins(): array
     {
         return $this->getProvidedDependency(ConfigurationDependencyProvider::PLUGINS_CONFIGURATION_VALUE_REQUEST_EXPANDER);
+    }
+
+    public function createConfigurationFileUploadCreator(): ConfigurationFileUploadCreatorInterface
+    {
+        return new ConfigurationFileUploadCreator(
+            $this->getFileManagerFacade(),
+            $this->getFileSystemService(),
+        );
+    }
+
+    public function getFileSystemService(): FileSystemServiceInterface
+    {
+        return $this->getProvidedDependency(ConfigurationDependencyProvider::SERVICE_FILE_SYSTEM);
+    }
+
+    public function getFileManagerFacade(): FileManagerFacadeInterface
+    {
+        return $this->getProvidedDependency(ConfigurationDependencyProvider::FACADE_FILE_MANAGER);
     }
 
     public function createConfigurationValueEncryptor(): ConfigurationValueEncryptorInterface

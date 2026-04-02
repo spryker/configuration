@@ -13,6 +13,7 @@ use Generated\Shared\Transfer\ConfigurationValueTransfer;
 use Spryker\Shared\Configuration\ConfigurationConstants;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptorInterface;
 use Spryker\Zed\Configuration\Business\Cache\ConfigurationCacheManagerInterface;
+use Spryker\Zed\Configuration\Business\Sanitizer\ConfigurationValueSanitizerInterface;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationValueValidatorInterface;
 use Spryker\Zed\Configuration\Persistence\ConfigurationEntityManagerInterface;
@@ -34,6 +35,7 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
         protected ConfigurationSchemaProviderInterface $schemaProvider,
         protected array $preSavePlugins,
         protected array $postSavePlugins,
+        protected ConfigurationValueSanitizerInterface $sanitizer,
     ) {
     }
 
@@ -54,6 +56,10 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
 
         $errors = [];
         foreach ($configurationValueCollectionRequestTransfer->getConfigurationValues() as $configurationValueTransfer) {
+            if ($this->sanitizer->isSanitizeXssEnabled($configurationValueTransfer->getSettingKeyOrFail())) {
+                $this->sanitizer->sanitize($configurationValueTransfer);
+            }
+
             $validationResponse = $this->validator->validate($configurationValueTransfer);
 
             if (!$validationResponse->getIsValid()) {

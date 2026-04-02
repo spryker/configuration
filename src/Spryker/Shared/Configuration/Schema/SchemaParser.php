@@ -143,6 +143,7 @@ class SchemaParser implements SchemaParserInterface
         $setting[ConfigurationConstants::SCHEMA_KEY_OPTIONS] = $setting[ConfigurationConstants::SCHEMA_KEY_OPTIONS] ?? [];
         $setting[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] = $setting[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] ?? [];
         $setting[ConfigurationConstants::SCHEMA_KEY_DEPENDENCIES] = $setting[ConfigurationConstants::SCHEMA_KEY_DEPENDENCIES] ?? [];
+        $setting[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS] = $setting[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS] ?? [];
 
         return $setting;
     }
@@ -299,6 +300,7 @@ class SchemaParser implements SchemaParserInterface
             ConfigurationConstants::VALUE_TYPE_FLOAT,
             ConfigurationConstants::VALUE_TYPE_BOOLEAN,
             ConfigurationConstants::VALUE_TYPE_COLOR,
+            ConfigurationConstants::VALUE_TYPE_FILE,
             ConfigurationConstants::VALUE_TYPE_JSON,
             ConfigurationConstants::VALUE_TYPE_TEXT,
             ConfigurationConstants::VALUE_TYPE_SELECT,

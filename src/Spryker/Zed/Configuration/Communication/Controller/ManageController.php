@@ -118,6 +118,7 @@ class ManageController extends AbstractController
             'allScopeIdentifiers' => $allScopeIdentifiers,
             'availableScopes' => $availableScopes,
             'isEditable' => $this->isSaveActionAccessible(),
+            'fileUploadForms' => $this->buildFileUploadForms($tabSettings),
         ]);
     }
 
@@ -238,6 +239,33 @@ class ManageController extends AbstractController
             static::RESPONSE_KEY_SUCCESS => true,
             static::RESPONSE_KEY_SETTINGS => $tabSettings,
         ]);
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $tabSettings
+     *
+     * @return array<string, \Symfony\Component\Form\FormView>
+     */
+    protected function buildFileUploadForms(array $tabSettings): array
+    {
+        $forms = [];
+
+        foreach ($tabSettings as $group) {
+            foreach ($group[ConfigurationConstants::SCHEMA_KEY_SETTINGS] as $setting) {
+                if ($setting[ConfigurationConstants::SCHEMA_KEY_TYPE] !== ConfigurationConstants::VALUE_TYPE_FILE) {
+                    continue;
+                }
+
+                $forms[$setting[ConfigurationConstants::SCHEMA_KEY_KEY]] = $this->getFactory()
+                    ->createFileUploadForm(
+                        $setting[ConfigurationConstants::SCHEMA_KEY_FILE_UPLOAD] ?? [],
+                        $setting[ConfigurationConstants::SCHEMA_KEY_KEY],
+                    )
+                    ->createView();
+            }
+        }
+
+        return $forms;
     }
 
     protected function isSaveActionAccessible(): bool

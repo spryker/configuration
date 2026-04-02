@@ -23,6 +23,7 @@ suites:
                       projectNamespaces: ['Pyz', 'Spryker']
                 - \SprykerTest\Shared\Testify\Helper\DependencyHelper
                 - \SprykerTest\Shared\Propel\Helper\TransactionHelper
+                - \SprykerTest\Shared\FileManager\Helper\FileManagerHelper
     Communication:
         path: Communication
         actor: ConfigurationCommunicationTester

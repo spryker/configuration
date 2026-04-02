@@ -7,6 +7,8 @@
 
 namespace Spryker\Zed\Configuration;
 
+use Spryker\Service\FileSystem\FileSystemServiceInterface;
+use Spryker\Zed\FileManager\Business\FileManagerFacadeInterface;
 use Spryker\Zed\Kernel\AbstractBundleDependencyProvider;
 use Spryker\Zed\Kernel\Container;
 
@@ -26,11 +28,20 @@ class ConfigurationDependencyProvider extends AbstractBundleDependencyProvider
 
     public const string FACADE_ACL = 'FACADE_ACL';
 
+    public const string FACADE_FILE_MANAGER = 'FACADE_FILE_MANAGER';
+
+    public const string FACADE_TRANSLATOR = 'FACADE_TRANSLATOR';
+
+    public const string SERVICE_FILE_SYSTEM = 'SERVICE_FILE_SYSTEM';
+
+    public const string SERVICE_UTIL_SANITIZE_XSS = 'SERVICE_UTIL_SANITIZE_XSS';
+
     public function provideCommunicationLayerDependencies(Container $container): Container
     {
         $container = parent::provideCommunicationLayerDependencies($container);
         $container = $this->addConfigurationClient($container);
         $container = $this->addAclFacade($container);
+        $container = $this->addTranslatorFacade($container);
 
         return $container;
     }
@@ -43,6 +54,9 @@ class ConfigurationDependencyProvider extends AbstractBundleDependencyProvider
         $container = $this->addConfigurationValuePostSavePlugins($container);
         $container = $this->addConfigurationValueRequestExpanderPlugins($container);
         $container = $this->addUtilEncryptionService($container);
+        $container = $this->addFileManagerFacade($container);
+        $container = $this->addFlysystemService($container);
+        $container = $this->addUtilSanitizeXssService($container);
 
         return $container;
     }
@@ -153,6 +167,42 @@ class ConfigurationDependencyProvider extends AbstractBundleDependencyProvider
     {
         $container->set(static::FACADE_ACL, function (Container $container) {
             return $container->getLocator()->acl()->facade();
+        });
+
+        return $container;
+    }
+
+    protected function addFileManagerFacade(Container $container): Container
+    {
+        $container->set(static::FACADE_FILE_MANAGER, function (Container $container): FileManagerFacadeInterface {
+            return $container->getLocator()->fileManager()->facade();
+        });
+
+        return $container;
+    }
+
+    protected function addTranslatorFacade(Container $container): Container
+    {
+        $container->set(static::FACADE_TRANSLATOR, function (Container $container) {
+            return $container->getLocator()->translator()->facade();
+        });
+
+        return $container;
+    }
+
+    protected function addFlysystemService(Container $container): Container
+    {
+        $container->set(static::SERVICE_FILE_SYSTEM, function (Container $container): FileSystemServiceInterface {
+            return $container->getLocator()->fileSystem()->service();
+        });
+
+        return $container;
+    }
+
+    protected function addUtilSanitizeXssService(Container $container): Container
+    {
+        $container->set(static::SERVICE_UTIL_SANITIZE_XSS, function (Container $container) {
+            return $container->getLocator()->utilSanitizeXss()->service();
         });
 
         return $container;

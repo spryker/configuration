@@ -7,6 +7,8 @@
 
 namespace Spryker\Zed\Configuration\Business;
 
+use Generated\Shared\Transfer\ConfigurationFileUploadCollectionRequestTransfer;
+use Generated\Shared\Transfer\ConfigurationFileUploadCollectionResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingValueCollectionTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingValuesCriteriaTransfer;
 use Generated\Shared\Transfer\ConfigurationSyncResponseTransfer;
@@ -34,6 +36,24 @@ interface ConfigurationFacadeInterface
      * @return mixed
      */
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed;
+
+    /**
+     * Specification:
+     * - Requires `ConfigurationValueRequestTransfer.key` to be set (used as prefix).
+     * - Executes `ConfigurationValueRequestExpanderPluginInterface` plugin stack once to enrich scope context.
+     * - Looks up all setting definitions from the merged configuration schema whose keys share the prefix.
+     * - Resolves each value by walking the scope hierarchy from most specific to global.
+     * - Casts each raw value to the native PHP type defined by the setting schema.
+     * - Returns schema-defined defaults when no stored value exists at any scope level.
+     * - Returns an empty array when no settings match the given prefix.
+     *
+     * @api
+     *
+     * @param \Generated\Shared\Transfer\ConfigurationValueRequestTransfer $configurationValueRequestTransfer
+     *
+     * @return array<string, mixed>
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array;
 
     /**
      * Specification:
@@ -125,4 +145,23 @@ interface ConfigurationFacadeInterface
      * @return array<string>
      */
     public function getScopeIdentifiers(string $scope): array;
+
+    /**
+     * Specification:
+     * - Persists configuration file uploads.
+     * - Requires `ConfigurationFileUploadTransfer.fileManagerData` to be set for each item.
+     * - Saves each file upload individually and resolves its public URL.
+     * - Adds an `ErrorTransfer` to the response for each file that cannot be saved.
+     * - Stops processing after the first error if `ConfigurationFileUploadCollectionRequestTransfer.isTransactional` is set to `true`.
+     * - Returns a `ConfigurationFileUploadCollectionResponseTransfer` containing the updated file transfers and any errors that occurred during processing.
+     *
+     * @api
+     *
+     * @param \Generated\Shared\Transfer\ConfigurationFileUploadCollectionRequestTransfer $configurationFileUploadCollectionRequestTransfer
+     *
+     * @return \Generated\Shared\Transfer\ConfigurationFileUploadCollectionResponseTransfer
+     */
+    public function createConfigurationFileUploadCollection(
+        ConfigurationFileUploadCollectionRequestTransfer $configurationFileUploadCollectionRequestTransfer,
+    ): ConfigurationFileUploadCollectionResponseTransfer;
 }

@@ -151,6 +151,7 @@ class ConfigurationSchemaSync implements ConfigurationSchemaSyncInterface
                             ConfigurationConstants::SCHEMA_KEY_STOREFRONT => $setting[ConfigurationConstants::SCHEMA_KEY_STOREFRONT] ?? false,
                             ConfigurationConstants::SCHEMA_KEY_SCOPES => $setting[ConfigurationConstants::SCHEMA_KEY_SCOPES] ?? [],
                             ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS => $setting[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] ?? [],
+                            ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS => $setting[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS] ?? [],
                         ];
                     }
                 }

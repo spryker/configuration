@@ -33,7 +33,48 @@ abstract class AbstractConfigurationValueResolver implements ConfigurationValueR
     ) {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed
+    {
+        return $this->resolveConfigurationValueForKey($configurationValueRequestTransfer);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array
+    {
+        $prefix = $configurationValueRequestTransfer->getKeyOrFail();
+        $scopes = (array)$configurationValueRequestTransfer->getScopes();
+
+        if (static::$settingCache === null) {
+            static::$settingCache = $this->schemaReader->getSettingsMap();
+        }
+
+        $prefixWithSeparator = $prefix . ConfigurationConstants::STORAGE_KEY_SEPARATOR;
+        $configurationValues = [];
+
+        foreach (array_keys(static::$settingCache) as $settingKey) {
+            if (!str_starts_with($settingKey, $prefixWithSeparator)) {
+                continue;
+            }
+
+            $configurationValueRequestTransfer = (new ConfigurationValueRequestTransfer())->setKey($settingKey);
+
+            foreach ($scopes as $scope) {
+                $configurationValueRequestTransfer->addScope($scope);
+            }
+
+            $relativeKey = substr($settingKey, strlen($prefixWithSeparator));
+            $configurationValues[$relativeKey] = $this->resolveConfigurationValueForKey($configurationValueRequestTransfer);
+        }
+
+        return $configurationValues;
+    }
+
+    protected function resolveConfigurationValueForKey(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed
     {
         $key = $configurationValueRequestTransfer->getKeyOrFail();
         $scopeContextTransfers = (array)$configurationValueRequestTransfer->getScopes();
@@ -98,7 +139,8 @@ abstract class AbstractConfigurationValueResolver implements ConfigurationValueR
             ->setIsSecret($entry[ConfigurationConstants::SCHEMA_KEY_SECRET] ?? false)
             ->setIsStorefront($entry[ConfigurationConstants::SCHEMA_KEY_STOREFRONT] ?? false)
             ->setScopes($entry[ConfigurationConstants::SCHEMA_KEY_SCOPES] ?? [])
-            ->setConstraints($entry[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] ?? []);
+            ->setConstraints($entry[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] ?? [])
+            ->setSanitizeXss($entry[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS] ?? []);
     }
 
     /**

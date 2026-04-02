@@ -15,6 +15,8 @@ use Spryker\Zed\Kernel\AbstractBundleConfig;
  */
 class ConfigurationConfig extends AbstractBundleConfig
 {
+    protected const string DEFAULT_FILE_UPLOAD_MAX_FILE_SIZE = '10M';
+
     /**
      * Specification:
      * - Returns directory paths relative to the application root where project-level YAML configuration schemas are located.
@@ -118,6 +120,19 @@ class ConfigurationConfig extends AbstractBundleConfig
     public function getSettingsMapFilePath(): string
     {
         return $this->getSharedConfig()->getSettingsMapFilePath();
+    }
+
+    /**
+     * Specification:
+     * - Returns the default maximum file size for file upload settings when not specified in the YAML schema.
+     *
+     * @api
+     *
+     * @return string
+     */
+    public function getDefaultFileUploadMaxFileSize(): string
+    {
+        return static::DEFAULT_FILE_UPLOAD_MAX_FILE_SIZE;
     }
 
     /**

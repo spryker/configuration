@@ -7,6 +7,8 @@
 
 namespace Spryker\Zed\Configuration\Business;
 
+use Generated\Shared\Transfer\ConfigurationFileUploadCollectionRequestTransfer;
+use Generated\Shared\Transfer\ConfigurationFileUploadCollectionResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingValueCollectionTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingValuesCriteriaTransfer;
 use Generated\Shared\Transfer\ConfigurationSyncResponseTransfer;
@@ -32,6 +34,18 @@ class ConfigurationFacade extends AbstractFacade implements ConfigurationFacadeI
         return $this->getFactory()
             ->createConfigurationReader()
             ->getConfigurationValue($configurationValueRequestTransfer);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @api
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array
+    {
+        return $this->getFactory()
+            ->createConfigurationReader()
+            ->getConfigurationValues($configurationValueRequestTransfer);
     }
 
     /**
@@ -105,5 +119,18 @@ class ConfigurationFacade extends AbstractFacade implements ConfigurationFacadeI
         return $this->getFactory()
             ->createConfigurationScopeIdentifierResolver()
             ->getIdentifiersForScope($scope);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @api
+     */
+    public function createConfigurationFileUploadCollection(
+        ConfigurationFileUploadCollectionRequestTransfer $configurationFileUploadCollectionRequestTransfer,
+    ): ConfigurationFileUploadCollectionResponseTransfer {
+        return $this->getFactory()
+            ->createConfigurationFileUploadCreator()
+            ->createFileUploadCollection($configurationFileUploadCollectionRequestTransfer);
     }
 }

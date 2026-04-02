@@ -1,7 +1,14 @@
-<input type="color"
-       id="setting-{{ setting.key }}"
-       class="form-control config-input"
-       value="{{ setting.has_custom_value ? setting.current_value : setting.inherited_value }}"
-       data-original-value="{{ setting.current_value }}"
-       data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}"
-       {% if isEditable is defined and not isEditable %}disabled{% endif %}>
+{% set value = setting.has_custom_value ? setting.current_value : setting.inherited_value %}
+
+<div class="d-flex align-items-stretch w-50 color-preview position-relative js-color-preview" style="--input-color: {{ value }}">
+    <span class="input-group-text flex-grow-1 js-color-hex-preview">{{ value }}</span>
+    <span class="color-swatch-wrapper js-color-swatch-display"></span>
+
+    <input type="color"
+            id="setting-{{ setting.key }}"
+            class="color-swatch-input config-input js-color-swatch-input"
+            value="{{ value }}"
+            data-original-value="{{ setting.current_value }}"
+            data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}"
+            {% if isEditable is defined and not isEditable %}disabled{% endif %}>
+</div>

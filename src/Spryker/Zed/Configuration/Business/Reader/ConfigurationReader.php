@@ -35,11 +35,24 @@ class ConfigurationReader extends AbstractConfigurationValueResolver implements 
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed
     {
         $configurationValueRequestTransfer = $this->executeValueRequestExpanderPlugins($configurationValueRequestTransfer);
 
         return parent::getConfigurationValue($configurationValueRequestTransfer);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array
+    {
+        $configurationValueRequestTransfer = $this->executeValueRequestExpanderPlugins($configurationValueRequestTransfer);
+
+        return parent::getConfigurationValues($configurationValueRequestTransfer);
     }
 
     protected function fetchRawValue(string $key, string $scope, ?string $scopeIdentifier = null): ?string

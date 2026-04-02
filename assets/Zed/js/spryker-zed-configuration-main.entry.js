@@ -7,3 +7,6 @@
 
 require('./modules/main');
 require('./modules/configuration-managment');
+import { FileUploadHandler } from './modules/file-upload-handler';
+
+new FileUploadHandler();

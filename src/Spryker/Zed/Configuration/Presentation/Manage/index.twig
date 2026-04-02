@@ -45,7 +45,7 @@
                     {# Single non-global scope: combine scope type + identifier into one selector #}
                     {% set singleScope = nonGlobalScopes | first %}
                     {% set singleScopeIdentifiers = allScopeIdentifiers[singleScope] ?? [] %}
-                    <select id="scope-combined" class="form-control" style="width: 200px; display: inline-block;">
+                    <select id="scope-combined" class="form-control" style="width: 200px; display: inline-block;" data-qa="scope-combined">
                         <option value="global:" {% if currentScope == 'global' %}selected{% endif %}>
                             {{ ('Default (All ' ~ singleScope|capitalize ~ 's)') | trans }}
                         </option>
@@ -79,7 +79,7 @@
             </div>
 
             <div class="config-search">
-                <input type="text" id="config-search" class="form-control" placeholder="{{ 'Search settings...' | trans }}" style="width: 300px;">
+                <input type="text" id="config-search" class="form-control" placeholder="{{ 'Search settings...' | trans }}" style="width: 300px;" data-qa="config-search">
             </div>
         </div>
 
@@ -137,10 +137,10 @@
                         <span id="changes-count">0</span> {{ 'unsaved changes' | trans }}
                     </span>
                     <div class="save-bar-actions">
-                        <button type="button" class="btn btn-default" id="reset-changes">
+                        <button type="button" class="btn btn-default" id="reset-changes" data-qa="reset-changes">
                             <i class="fa fa-undo"></i> {{ 'Reset Changes' | trans }}
                         </button>
-                        <button type="button" class="btn btn-primary" id="save-configuration">
+                        <button type="button" class="btn btn-primary" id="save-configuration" data-qa="save-configuration">
                             <i class="fa fa-save"></i> {{ 'Save Configuration' | trans }}
                         </button>
                     </div>

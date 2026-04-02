@@ -1,0 +1,99 @@
+{% set modalId = 'file-upload-modal-' ~ setting.key | replace({'_': '-', ':': '-'}) %}
+{% set fieldId = 'setting-' ~ setting.key %}
+{% set currentValue = setting.current_value | default(setting.default_value) %}
+{% set maxFileSize = setting.file_upload.max_file_size | default('') %}
+{% set allowedExtensions = setting.file_upload.allowed_extensions | default([]) %}
+{% set recommendedWidthPx = setting.file_upload.recommended_width_px | default('') %}
+{% set recommendedHeightPx = setting.file_upload.recommended_height_px | default('') %}
+
+<div class="file-upload-setting js-file-upload-setting"
+     data-upload-url="{{ url('/configuration/file-upload/upload') }}"
+     data-modal-id="{{ modalId }}">
+
+    <input type="hidden"
+           id="{{ fieldId }}"
+           name="settings[{{ setting.key }}]"
+           class="config-input js-file-setting-value"
+           value="{{ currentValue }}"
+           data-original-value="{{ setting.current_value | default(setting.default_value) }}"
+           data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}">
+
+    <div class="d-flex align-items-center" style="gap: 10px;">
+        {% if isEditable is not defined or isEditable %}
+            <button type="button"
+                    class="btn btn-default js-file-upload-trigger"
+                    data-label-change="{{ 'Change File' | trans }}"
+                    data-label-upload="{{ 'Upload File' | trans }}"
+                    data-qa="file-upload-trigger">
+                <span class="material-symbols-outlined">upload</span>
+                {{ currentValue ? ('Change File' | trans) : ('Upload File' | trans) }}
+            </button>
+        {% endif %}
+
+        {% if currentValue %}
+            <div class="file-setting-preview js-file-setting-preview">
+                <img src="{{ currentValue }}" alt="{{ setting.name | trans }}" class="img-thumbnail">
+            </div>
+        {% endif %}
+    </div>
+
+    {% if allowedExtensions or maxFileSize or (recommendedWidthPx and recommendedHeightPx) %}
+        <small class="help-block text-muted">
+            {% if recommendedWidthPx and recommendedHeightPx %}
+                {{ 'Recommended size: %width%px x %height%px' | trans({'%width%': recommendedWidthPx, '%height%': recommendedHeightPx}) }}
+                <br>
+            {% endif %}
+            {% if allowedExtensions %}
+                {{ 'Allowed file types: %types%' | trans({'%types%': allowedExtensions | join(', ')}) }}
+                <br>
+            {% endif %}
+            {% if maxFileSize %}
+                {{ 'Max file size: %size%' | trans({'%size%': maxFileSize}) }}
+            {% endif %}
+        </small>
+    {% endif %}
+
+    <div id="{{ modalId }}" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">{{ setting.name | trans }}</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ 'Close' | trans }}"></button>
+                </div>
+                <div class="modal-body">
+                    {{ form_start(fileUploadForms[setting.key], {'attr': {'class': 'js-file-upload-form'}}) }}
+                        <div class="form-group">
+                            <label>{{ 'Select file' | trans }}</label>
+                            {{ form_widget(fileUploadForms[setting.key].file, {'attr': {'class': 'form-control js-file-input'}}) }}
+                            <small class="help-block">
+                                {% if recommendedWidthPx and recommendedHeightPx %}
+                                    {{ 'Recommended size: %width%px x %height%px' | trans({'%width%': recommendedWidthPx, '%height%': recommendedHeightPx}) }}
+                                    <br>
+                                {% endif %}
+                                {% if allowedExtensions %}
+                                    {{ 'Allowed file types: %types%' | trans({'%types%': allowedExtensions | join(', ')}) }}
+                                    <br>
+                                {% endif %}
+                                {% if maxFileSize %}
+                                    {{ 'Max file size: %size%' | trans({'%size%': maxFileSize}) }}
+                                {% endif %}
+                            </small>
+                        </div>
+                        <div class="js-upload-errors" data-error="{{ 'Please select a file.' | trans }}" style="display:none;"></div>
+                    {{ form_end(fileUploadForms[setting.key]) }}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        {{ 'Cancel' | trans }}
+                    </button>
+                    <button type="button" class="btn btn-primary js-file-upload-submit">
+                        <span class="js-upload-spinner" style="display:none;">
+                            <span class="material-symbols-outlined spinner-icon">progress_activity</span>
+                        </span>
+                        {{ 'Upload' | trans }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

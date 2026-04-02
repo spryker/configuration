@@ -14,6 +14,11 @@ interface ConfigurationStorageReaderInterface
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed;
 
     /**
+     * @return array<string, mixed>
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array;
+
+    /**
      * Reads all raw configuration values from storage for the given scope.
      *
      * @param string $scope

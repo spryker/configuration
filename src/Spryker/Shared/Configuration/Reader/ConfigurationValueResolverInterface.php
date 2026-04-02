@@ -11,5 +11,13 @@ use Generated\Shared\Transfer\ConfigurationValueRequestTransfer;
 
 interface ConfigurationValueResolverInterface
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array;
 }

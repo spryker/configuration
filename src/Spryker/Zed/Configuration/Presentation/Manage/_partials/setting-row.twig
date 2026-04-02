@@ -61,13 +61,15 @@
             {% include '@Configuration/Manage/_partials/inputs/integer.twig' %}
         {% elseif setting.type == 'color' %}
             {% include '@Configuration/Manage/_partials/inputs/color.twig' %}
+        {% elseif setting.type == 'file' %}
+            {% include '@Configuration/Manage/_partials/inputs/file.twig' %}
         {% else %}
             {% include '@Configuration/Manage/_partials/inputs/text.twig' %}
         {% endif %}
 
         {# Help Text - Displayed below input #}
         {% if setting.help_text %}
-            <small class="help-text">{{ setting.help_text }}</small>
+            <small class="help-text">{{ setting.help_text | trans }}</small>
         {% endif %}
     </div>
 </div>

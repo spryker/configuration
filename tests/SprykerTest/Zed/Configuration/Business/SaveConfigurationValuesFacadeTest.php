@@ -14,6 +14,7 @@ use Generated\Shared\Transfer\ConfigurationValueTransfer;
 use Orm\Zed\Configuration\Persistence\SpyConfigurationValue;
 use Orm\Zed\Configuration\Persistence\SpyConfigurationValueQuery;
 use Spryker\Service\UtilEncryption\UtilEncryptionServiceInterface;
+use Spryker\Service\UtilSanitizeXss\UtilSanitizeXssServiceInterface;
 use Spryker\Shared\Configuration\ConfigurationConfig as SprykerConfigurationConfig;
 use Spryker\Zed\Configuration\Business\ConfigurationBusinessFactory;
 use Spryker\Zed\Configuration\Business\ConfigurationFacade;
@@ -176,6 +177,60 @@ class SaveConfigurationValuesFacadeTest extends Unit
         $this->assertNull($deletedEntity);
     }
 
+    public function testSaveConfigurationValuesSanitizesXssForSettingWithSanitizeXssOption(): void
+    {
+        // Arrange — use real service so the real Symfony HtmlSanitizer adapter runs
+        $facade = $this->createFacade($this->tester->getLocator()->utilSanitizeXss()->service());
+
+        $requestTransfer = (new ConfigurationValueCollectionRequestTransfer())
+            ->addConfigurationValue(
+                (new ConfigurationValueTransfer())
+                    ->setSettingKey('catalog:general:display:description')
+                    ->setScope('global')
+                    ->setValue('<script>alert(1)</script><strong>Hello</strong>'),
+            );
+
+        // Act
+        $result = $facade->saveConfigurationValues($requestTransfer);
+
+        // Assert
+        $this->assertTrue($result->getIsSuccess());
+        $this->assertSame(1, $result->getSavedCount());
+
+        $savedEntity = SpyConfigurationValueQuery::create()
+            ->filterBySettingKey('catalog:general:display:description')
+            ->filterByScope('global')
+            ->findOne();
+
+        $this->assertNotNull($savedEntity);
+        $this->assertStringNotContainsString('<script>', (string)$savedEntity->getValue());
+        $this->assertStringContainsString('<strong>Hello</strong>', (string)$savedEntity->getValue());
+    }
+
+    public function testSaveConfigurationValuesDoesNotSanitizeSettingWithoutSanitizeXssOption(): void
+    {
+        // Arrange
+        $serviceMock = $this->createMock(UtilSanitizeXssServiceInterface::class);
+        $serviceMock->expects($this->never())->method('sanitize');
+
+        $facade = $this->createFacade($serviceMock);
+
+        $requestTransfer = (new ConfigurationValueCollectionRequestTransfer())
+            ->addConfigurationValue(
+                (new ConfigurationValueTransfer())
+                    ->setSettingKey('catalog:general:display:items_per_page')
+                    ->setScope('global')
+                    ->setValue('24'),
+            );
+
+        // Act
+        $result = $facade->saveConfigurationValues($requestTransfer);
+
+        // Assert
+        $this->assertTrue($result->getIsSuccess());
+        $this->assertSame(1, $result->getSavedCount());
+    }
+
     public function testSaveConfigurationValuesHandlesEmptyRequest(): void
     {
         // Arrange
@@ -219,7 +274,7 @@ class SaveConfigurationValuesFacadeTest extends Unit
         $this->assertSame('any-value', $savedEntity->getValue());
     }
 
-    protected function createFacade(): ConfigurationFacade
+    protected function createFacade(?UtilSanitizeXssServiceInterface $sanitizeXssService = null): ConfigurationFacade
     {
         $schemaFilePath = __DIR__ . '/../_data/test-schema.php';
 
@@ -236,11 +291,17 @@ class SaveConfigurationValuesFacadeTest extends Unit
         $this->tester->setDependency(ConfigurationDependencyProvider::PLUGINS_CONFIGURATION_VALUE_PRE_SAVE, []);
         $this->tester->setDependency(ConfigurationDependencyProvider::PLUGINS_CONFIGURATION_VALUE_POST_SAVE, []);
         $this->tester->setDependency(ConfigurationDependencyProvider::SERVICE_UTIL_ENCRYPTION, $this->createMock(UtilEncryptionServiceInterface::class));
+        $this->tester->setDependency(ConfigurationDependencyProvider::SERVICE_UTIL_SANITIZE_XSS, $sanitizeXssService ?? $this->createDefaultSanitizeXssServiceMock());
 
         $facade = $this->tester->getFacade();
         $facade->setFactory($factory);
 
         return $facade;
+    }
+
+    protected function createDefaultSanitizeXssServiceMock(): UtilSanitizeXssServiceInterface
+    {
+        return $this->createMock(UtilSanitizeXssServiceInterface::class);
     }
 
     protected function createSharedConfigMock(string $schemaFilePath): SprykerConfigurationConfig

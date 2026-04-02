@@ -103,6 +103,7 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
                 'options' => count($setting->getOptions()) ? $setting->getOptions() : [],
                 'constraints' => count($setting->getConstraints()) ? $setting->getConstraints() : [],
                 'dependencies' => count($setting->getDependencies()) ? $setting->getDependencies() : [],
+                'file_upload' => $setting->getFileUpload() ?: [],
                 'is_secret' => $setting->getIsSecret() ?? false,
                 'is_storefront' => $setting->getIsStorefront() ?? false,
                 'pending_sync' => $pendingSync,

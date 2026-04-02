@@ -42,4 +42,18 @@ return [
         'scopes' => ['global'],
         'constraints' => [],
     ],
+    'catalog:general:display:description' => [
+        'type' => 'text',
+        'default_value' => '',
+        'secret' => false,
+        'storefront' => true,
+        'scopes' => ['global'],
+        'constraints' => [],
+        'sanitize_xss' => [
+            'allow_elements' => [
+                'a' => ['href', 'class'],
+                'strong' => [],
+            ],
+        ],
+    ],
 ];

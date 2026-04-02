@@ -32,6 +32,18 @@ class ConfigurationClient extends AbstractClient implements ConfigurationClientI
      *
      * @api
      */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array
+    {
+        return $this->getFactory()
+            ->createConfigurationStorageReader()
+            ->getConfigurationValues($configurationValueRequestTransfer);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @api
+     */
     public function getStorageDataForScope(string $scope, ?string $scopeIdentifier = null): array
     {
         return $this->getFactory()

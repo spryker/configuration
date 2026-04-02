@@ -205,8 +205,42 @@
                         "select",
                         "multiselect",
                         "radio",
-                        "color"
+                        "color",
+                        "file"
                     ]
+                },
+                "file_upload": {
+                    "type": "object",
+                    "description": "File upload configuration options. Required when type is 'file'.",
+                    "properties": {
+                        "storage_name": {
+                            "type": "string",
+                            "description": "Filesystem service name matching $config[FileSystemConstants::FILESYSTEM_SERVICE] key"
+                        },
+                        "allowed_mime_types": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Allowed MIME types for validation (e.g. image/png, image/svg+xml)"
+                        },
+                        "allowed_extensions": {
+                            "type": "array",
+                            "items": { "type": "string" },
+                            "description": "Allowed file extensions including dot (e.g. .png, .svg)"
+                        },
+                        "max_file_size": {
+                            "type": "string",
+                            "description": "Maximum file size with unit suffix (e.g. 10M, 5Mb, 1G)"
+                        },
+                        "recommended_width_px": {
+                            "type": "integer",
+                            "description": "Recommended image width in pixels (for informational purposes only)"
+                        },
+                        "recommended_height_px": {
+                            "type": "integer",
+                            "description": "Recommended image height in pixels (for informational purposes only)"
+                        }
+                    },
+                    "required": ["storage_name"]
                 },
                 "default_value": {
                     "description": "Default value for this setting (type must match the 'type' field)"
@@ -251,6 +285,62 @@
                     "description": "Validation constraints for this setting",
                     "items": {
                         "$ref": "#/definitions/constraint"
+                    }
+                },
+                "sanitize_xss": {
+                    "type": "object",
+                    "description": "XSS sanitization applied to this setting value before persistence. When present, the value is sanitized using the Symfony HtmlSanitizer with the configured options.",
+                    "properties": {
+                        "allow_safe_elements": {
+                            "type": "boolean",
+                            "description": "Apply the W3C safe elements baseline — allows all elements and attributes marked safe (excludes CSS injection vectors).",
+                            "default": false
+                        },
+                        "allow_static_elements": {
+                            "type": "boolean",
+                            "description": "Apply the W3C static elements baseline — allows all non-script elements. Broader than allow_safe_elements.",
+                            "default": false
+                        },
+                        "allow_elements": {
+                            "type": "object",
+                            "description": "Elements to allow, mapped to their permitted attributes. Value can be a list of attribute names, '*' for all safe attributes, or [] for no attributes. Maps to HtmlSanitizerConfig::allowElement().",
+                            "additionalProperties": {
+                                "oneOf": [
+                                    { "type": "array", "items": { "type": "string" } },
+                                    { "type": "string", "enum": ["*"] }
+                                ]
+                            }
+                        },
+                        "allow_attributes": {
+                            "type": "object",
+                            "description": "Attributes to allow, mapped to the elements they are permitted on. Value can be a list of element names or '*' for all currently allowed elements. Maps to HtmlSanitizerConfig::allowAttribute().",
+                            "additionalProperties": {
+                                "oneOf": [
+                                    { "type": "array", "items": { "type": "string" } },
+                                    { "type": "string", "enum": ["*"] }
+                                ]
+                            }
+                        },
+                        "allowed_link_schemes": {
+                            "type": "array",
+                            "description": "URL schemes allowed in link href attributes (e.g. https, mailto, tel). Overrides the default [http, https, mailto, tel].",
+                            "items": { "type": "string" }
+                        },
+                        "allowed_link_hosts": {
+                            "type": "array",
+                            "description": "Hosts allowed in link href attributes. When set, all other hosts are dropped. By default all hosts are allowed.",
+                            "items": { "type": "string" }
+                        },
+                        "allow_relative_links": {
+                            "type": "boolean",
+                            "description": "Allow relative URLs in link href attributes. Dropped by default.",
+                            "default": false
+                        },
+                        "force_https_urls": {
+                            "type": "boolean",
+                            "description": "Rewrite HTTP URLs to HTTPS in the sanitized output.",
+                            "default": false
+                        }
                     }
                 }
             }

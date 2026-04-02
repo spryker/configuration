@@ -544,6 +544,50 @@
     }
 }
 
+// Color Input
+
+.color-preview {
+    .input-group-text {
+        transition: border-color 0.2s ease;
+    }
+
+    &:has(input:focus),
+    &:hover {
+        .input-group-text {
+            border-color: var(--ins-dark-border-subtle);
+        }
+    }
+
+    &:has(input:disabled) {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+}
+
+.color-swatch-wrapper {
+    width: 50px;
+    min-height: 38px;
+    background-color: var(--input-color);
+    border-radius: 0 10px 10px 0;
+}
+
+.color-swatch-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+
+    &:focus {
+        cursor: auto;
+    }
+
+    &.disabled {
+        cursor: not-allowed;
+    }
+}
+
 // Read-Only Mode
 
 .config-read-only-notice {
@@ -558,4 +602,8 @@
     i {
         margin-right: 6px;
     }
+}
+
+.img-thumbnail {
+    max-height: 40px;
 }

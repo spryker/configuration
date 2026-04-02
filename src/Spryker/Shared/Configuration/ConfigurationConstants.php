@@ -54,6 +54,8 @@ interface ConfigurationConstants
 
     public const string VALUE_TYPE_COLOR = 'color';
 
+    public const string VALUE_TYPE_FILE = 'file';
+
     public const string VALUE_TYPE_TEXT = 'text';
 
     public const string VALUE_TYPE_SELECT = 'select';
@@ -102,11 +104,31 @@ interface ConfigurationConstants
 
     public const string SCHEMA_KEY_HELP_TEXT = 'help_text';
 
+    public const string SCHEMA_KEY_FILE_UPLOAD = 'file_upload';
+
     public const string SCHEMA_KEY_PLACEHOLDER = 'placeholder';
 
     public const string SCHEMA_KEY_NOTE = 'note';
 
     public const string SCHEMA_KEY_TEMPLATE = 'template';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS = 'sanitize_xss';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_ALLOW_SAFE_ELEMENTS = 'allow_safe_elements';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_ALLOW_STATIC_ELEMENTS = 'allow_static_elements';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_ALLOW_ELEMENTS = 'allow_elements';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_ALLOW_ATTRIBUTES = 'allow_attributes';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_ALLOW_RELATIVE_LINKS = 'allow_relative_links';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_SCHEMES = 'allowed_link_schemes';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_HOSTS = 'allowed_link_hosts';
+
+    public const string SCHEMA_KEY_SANITIZE_XSS_FORCE_HTTPS_URLS = 'force_https_urls';
 
     public const string CONSTRAINT_KEY_TYPE = 'type';
 

@@ -45,6 +45,16 @@ class ConfigurationStorageReader extends AbstractConfigurationValueResolver impl
         return parent::getConfigurationValue($configurationValueRequestTransfer);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array
+    {
+        $configurationValueRequestTransfer = $this->executeValueRequestExpanderPlugins($configurationValueRequestTransfer);
+
+        return parent::getConfigurationValues($configurationValueRequestTransfer);
+    }
+
     public function getStorageDataForScope(string $scope, ?string $scopeIdentifier = null): array
     {
         $storageKey = $this->generateStorageKey($scope, $scopeIdentifier);

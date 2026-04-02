@@ -24,6 +24,8 @@
         <property name="isStorefront" type="bool"/>
         <property name="isEnabled" type="bool"/>
         <property name="order" type="int"/>
+        <property name="fileUpload" type="array" singular="fileUploadOption"/>
+        <property name="sanitizeXss" type="array" singular="sanitizeXssOption"/>
     </transfer>
 
     <transfer name="ConfigurationValue" strict="true">
@@ -145,11 +147,6 @@
         <property name="scopeIdentifier" type="string"/>
     </transfer>
 
-    <!--
-        Holds resolved values for a collection of settings.
-        directValues: keyed by settingKey, the value saved at exactly (scope, scopeIdentifier).
-        inheritedValues: keyed by settingKey, the value resolved by walking up the scope hierarchy.
-    -->
     <transfer name="ConfigurationSettingValueCollection" strict="true">
         <property name="directValues" type="array" singular="directValue"/>
         <property name="inheritedValues" type="array" singular="inheritedValue"/>
@@ -170,6 +167,96 @@
 
     <transfer name="EventEntity">
         <property name="additionalValues" type="array" singular="additionalValue"/>
+    </transfer>
+
+    <transfer name="ConfigurationFileUpload" strict="true">
+        <property name="fileManagerData" type="FileManagerData"/>
+        <property name="url" type="string"/>
+    </transfer>
+
+    <transfer name="ConfigurationFileUploadCollectionRequest" strict="true">
+        <property name="isTransactional" type="bool"/>
+        <property name="fileUploads" type="ConfigurationFileUpload[]" singular="fileUpload"/>
+    </transfer>
+
+    <transfer name="ConfigurationFileUploadCollectionResponse" strict="true">
+        <property name="errors" type="Error[]" singular="error"/>
+        <property name="fileUploads" type="ConfigurationFileUpload[]" singular="fileUpload"/>
+    </transfer>
+
+    <transfer name="AclEntityRule">
+        <property name="entity" type="string"/>
+        <property name="scope" type="string"/>
+        <property name="permissionMask" type="int"/>
+    </transfer>
+
+    <transfer name="AclEntityMetadataConfig">
+        <property name="aclEntityMetadataCollection" type="AclEntityMetadataCollection"/>
+    </transfer>
+
+    <transfer name="AclEntityMetadata">
+        <property name="entityName" type="string"/>
+        <property name="defaultGlobalOperationMask" type="int"/>
+    </transfer>
+
+    <transfer name="FileManagerData">
+        <property name="file" type="File"/>
+        <property name="fileInfo" type="FileInfo"/>
+        <property name="content" type="string"/>
+    </transfer>
+
+    <transfer name="FileInfo">
+        <property name="extension" type="string"/>
+        <property name="storageName" type="string"/>
+        <property name="size" type="int"/>
+        <property name="type" type="string"/>
+    </transfer>
+
+    <transfer name="File">
+        <property name="fileName" type="string"/>
+        <property name="fileUpload" type="FileUpload"/>
+    </transfer>
+
+    <transfer name="FileUpload">
+        <property name="clientOriginalName" type="string"/>
+        <property name="clientOriginalExtension" type="string"/>
+        <property name="size" type="int"/>
+        <property name="mimeTypeName" type="string"/>
+        <property name="realPath" type="string"/>
+    </transfer>
+
+    <transfer name="Error">
+        <property name="message" type="string"/>
+        <property name="entityIdentifier" type="string"/>
+    </transfer>
+
+    <transfer name="AclEntityMetadataCollection">
+        <property name="collection" type="array" singular="aclEntityMetadata" associative="true"/>
+    </transfer>
+
+    <transfer name="FileSystemQuery">
+        <property name="fileSystemName" type="string"/>
+    </transfer>
+
+    <transfer name="HtmlSanitizerConfig" strict="true">
+        <property name="isAllowSafeElements" type="bool"/>
+        <property name="isAllowStaticElements" type="bool"/>
+        <property name="isForceHttpsUrls" type="bool"/>
+        <property name="isAllowRelativeLinks" type="bool"/>
+        <property name="allowedLinkSchemes" type="string[]" singular="allowedLinkScheme"/>
+        <property name="allowedLinkHosts" type="string[]" singular="allowedLinkHost"/>
+        <property name="allowedElements" type="HtmlSanitizerAllowedElement[]" singular="allowedElement"/>
+        <property name="allowedAttributes" type="HtmlSanitizerAllowedAttribute[]" singular="allowedAttribute"/>
+    </transfer>
+
+    <transfer name="HtmlSanitizerAllowedElement" strict="true">
+        <property name="element" type="string"/>
+        <property name="allowedAttributes" type="string[]" singular="allowedAttribute"/>
+    </transfer>
+
+    <transfer name="HtmlSanitizerAllowedAttribute" strict="true">
+        <property name="attribute" type="string"/>
+        <property name="allowedElements" type="string[]" singular="allowedElement"/>
     </transfer>
 
 </transfers>
