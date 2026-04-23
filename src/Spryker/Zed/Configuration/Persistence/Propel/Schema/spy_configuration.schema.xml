@@ -27,7 +27,7 @@
         <column name="id_configuration_storage" type="INTEGER" primaryKey="true" autoIncrement="true"/>
         <column name="scope" type="VARCHAR" size="50" required="true"/>
         <column name="key" type="VARCHAR" size="255" required="true"/>
-        <column name="data" type="LONGVARCHAR" required="true"/>
+        <column name="data" type="LONGVARCHAR" required="false"/>
 
         <unique name="spy_configuration_storage-scope">
             <unique-column name="scope"/>

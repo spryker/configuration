@@ -10,7 +10,7 @@ namespace Spryker\Zed\Configuration\Business\Validator;
 use Generated\Shared\Transfer\ConfigurationErrorTransfer;
 use Generated\Shared\Transfer\ConfigurationValidationResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
-use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
 use Symfony\Component\Validator\Validation;
 
@@ -34,13 +34,13 @@ class ConfigurationValueValidator implements ConfigurationValueValidatorInterfac
         }
 
         $settingEntry = $settingsMap[$settingKey];
-        $constraintDefinitions = $settingEntry[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] ?? [];
+        $constraintDefinitions = $settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_CONSTRAINTS] ?? [];
 
         if (!$constraintDefinitions) {
             return $this->createSuccessResponse();
         }
 
-        $settingType = $settingEntry[ConfigurationConstants::SCHEMA_KEY_TYPE] ?? null;
+        $settingType = $settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_TYPE] ?? null;
         $symfonyConstraints = $this->mapConstraintDefinitions($constraintDefinitions, $settingType);
         $violations = Validation::createValidator()->validate($value, $symfonyConstraints);
 

@@ -9,7 +9,7 @@ namespace Spryker\Zed\Configuration\Business\Validator;
 
 use Exception;
 use InvalidArgumentException;
-use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Constraints\Choice;
 use Symfony\Component\Validator\Constraints\Email;
@@ -27,23 +27,23 @@ class ConfigurationConstraintMapper implements ConfigurationConstraintMapperInte
      * @var array<string, class-string<\Symfony\Component\Validator\Constraint>>
      */
     protected const array SHORT_NAME_TO_CLASS_MAP = [
-        ConfigurationConstants::CONSTRAINT_TYPE_REQUIRED => NotBlank::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_MIN => GreaterThanOrEqual::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_MAX => LessThanOrEqual::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_EMAIL => Email::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_URL => Url::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_REGEX => Regex::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_CHOICE => Choice::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_LENGTH => Length::class,
-        ConfigurationConstants::CONSTRAINT_TYPE_RANGE => Range::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_REQUIRED => NotBlank::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_MIN => GreaterThanOrEqual::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_MAX => LessThanOrEqual::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_EMAIL => Email::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_URL => Url::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_REGEX => Regex::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_CHOICE => Choice::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_LENGTH => Length::class,
+        ConfigurationSchemaConstants::CONSTRAINT_TYPE_RANGE => Range::class,
     ];
 
     /**
      * @var array<string, bool>
      */
     protected const array NUMERIC_SETTING_TYPES = [
-        ConfigurationConstants::VALUE_TYPE_INTEGER => true,
-        ConfigurationConstants::VALUE_TYPE_FLOAT => true,
+        ConfigurationSchemaConstants::VALUE_TYPE_INTEGER => true,
+        ConfigurationSchemaConstants::VALUE_TYPE_FLOAT => true,
     ];
 
     /**
@@ -51,9 +51,9 @@ class ConfigurationConstraintMapper implements ConfigurationConstraintMapperInte
      */
     public function mapToSymfonyConstraint(array $constraintDefinition, ?string $settingType = null): Constraint
     {
-        $type = $constraintDefinition[ConfigurationConstants::CONSTRAINT_KEY_TYPE] ?? '';
-        $message = $constraintDefinition[ConfigurationConstants::CONSTRAINT_KEY_MESSAGE] ?? null;
-        $options = $constraintDefinition[ConfigurationConstants::CONSTRAINT_KEY_OPTIONS] ?? [];
+        $type = $constraintDefinition[ConfigurationSchemaConstants::CONSTRAINT_KEY_TYPE] ?? '';
+        $message = $constraintDefinition[ConfigurationSchemaConstants::CONSTRAINT_KEY_MESSAGE] ?? null;
+        $options = $constraintDefinition[ConfigurationSchemaConstants::CONSTRAINT_KEY_OPTIONS] ?? [];
 
         if (str_contains($type, '\\')) {
             return $this->createConstraintFromClassName($type, $message, $options);
@@ -117,7 +117,7 @@ class ConfigurationConstraintMapper implements ConfigurationConstraintMapperInte
 
     protected function shouldUseLengthConstraint(string $shortName, ?string $settingType): bool
     {
-        if ($shortName !== ConfigurationConstants::CONSTRAINT_TYPE_MIN && $shortName !== ConfigurationConstants::CONSTRAINT_TYPE_MAX) {
+        if ($shortName !== ConfigurationSchemaConstants::CONSTRAINT_TYPE_MIN && $shortName !== ConfigurationSchemaConstants::CONSTRAINT_TYPE_MAX) {
             return false;
         }
 
@@ -139,16 +139,16 @@ class ConfigurationConstraintMapper implements ConfigurationConstraintMapperInte
     {
         $constraintOptions = [];
 
-        if ($shortName === ConfigurationConstants::CONSTRAINT_TYPE_MIN) {
-            $constraintOptions['min'] = $options[ConfigurationConstants::CONSTRAINT_OPTION_MIN];
+        if ($shortName === ConfigurationSchemaConstants::CONSTRAINT_TYPE_MIN) {
+            $constraintOptions['min'] = $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MIN];
 
             if ($message !== null) {
                 $constraintOptions['minMessage'] = $message;
             }
         }
 
-        if ($shortName === ConfigurationConstants::CONSTRAINT_TYPE_MAX) {
-            $constraintOptions['max'] = $options[ConfigurationConstants::CONSTRAINT_OPTION_MAX];
+        if ($shortName === ConfigurationSchemaConstants::CONSTRAINT_TYPE_MAX) {
+            $constraintOptions['max'] = $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MAX];
 
             if ($message !== null) {
                 $constraintOptions['maxMessage'] = $message;
@@ -174,29 +174,29 @@ class ConfigurationConstraintMapper implements ConfigurationConstraintMapperInte
         }
 
         return match ($shortName) {
-            ConfigurationConstants::CONSTRAINT_TYPE_REQUIRED,
-            ConfigurationConstants::CONSTRAINT_TYPE_EMAIL,
-            ConfigurationConstants::CONSTRAINT_TYPE_URL => $constraintOptions,
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_REQUIRED,
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_EMAIL,
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_URL => $constraintOptions,
 
-            ConfigurationConstants::CONSTRAINT_TYPE_MIN => array_merge($constraintOptions, [
-                'value' => $options[ConfigurationConstants::CONSTRAINT_OPTION_MIN],
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_MIN => array_merge($constraintOptions, [
+                'value' => $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MIN],
             ]),
 
-            ConfigurationConstants::CONSTRAINT_TYPE_MAX => array_merge($constraintOptions, [
-                'value' => $options[ConfigurationConstants::CONSTRAINT_OPTION_MAX],
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_MAX => array_merge($constraintOptions, [
+                'value' => $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MAX],
             ]),
 
-            ConfigurationConstants::CONSTRAINT_TYPE_REGEX => array_merge($constraintOptions, [
-                'pattern' => sprintf('/%s/', $options[ConfigurationConstants::CONSTRAINT_OPTION_PATTERN]),
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_REGEX => array_merge($constraintOptions, [
+                'pattern' => sprintf('/%s/', $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_PATTERN]),
             ]),
 
-            ConfigurationConstants::CONSTRAINT_TYPE_CHOICE => array_merge($constraintOptions, [
-                'choices' => $options[ConfigurationConstants::CONSTRAINT_OPTION_CHOICES],
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_CHOICE => array_merge($constraintOptions, [
+                'choices' => $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_CHOICES],
             ]),
 
-            ConfigurationConstants::CONSTRAINT_TYPE_LENGTH => $this->buildLengthOptions($constraintOptions, $options),
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_LENGTH => $this->buildLengthOptions($constraintOptions, $options),
 
-            ConfigurationConstants::CONSTRAINT_TYPE_RANGE => $this->buildRangeOptions($constraintOptions, $options),
+            ConfigurationSchemaConstants::CONSTRAINT_TYPE_RANGE => $this->buildRangeOptions($constraintOptions, $options),
 
             default => $constraintOptions,
         };
@@ -210,12 +210,12 @@ class ConfigurationConstraintMapper implements ConfigurationConstraintMapperInte
      */
     protected function buildLengthOptions(array $constraintOptions, array $options): array
     {
-        if (isset($options[ConfigurationConstants::CONSTRAINT_OPTION_MIN])) {
-            $constraintOptions['min'] = $options[ConfigurationConstants::CONSTRAINT_OPTION_MIN];
+        if (isset($options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MIN])) {
+            $constraintOptions['min'] = $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MIN];
         }
 
-        if (isset($options[ConfigurationConstants::CONSTRAINT_OPTION_MAX])) {
-            $constraintOptions['max'] = $options[ConfigurationConstants::CONSTRAINT_OPTION_MAX];
+        if (isset($options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MAX])) {
+            $constraintOptions['max'] = $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MAX];
         }
 
         return $constraintOptions;
@@ -234,12 +234,12 @@ class ConfigurationConstraintMapper implements ConfigurationConstraintMapperInte
             unset($constraintOptions['message']);
         }
 
-        if (isset($options[ConfigurationConstants::CONSTRAINT_OPTION_MIN])) {
-            $constraintOptions['min'] = $options[ConfigurationConstants::CONSTRAINT_OPTION_MIN];
+        if (isset($options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MIN])) {
+            $constraintOptions['min'] = $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MIN];
         }
 
-        if (isset($options[ConfigurationConstants::CONSTRAINT_OPTION_MAX])) {
-            $constraintOptions['max'] = $options[ConfigurationConstants::CONSTRAINT_OPTION_MAX];
+        if (isset($options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MAX])) {
+            $constraintOptions['max'] = $options[ConfigurationSchemaConstants::CONSTRAINT_OPTION_MAX];
         }
 
         return $constraintOptions;

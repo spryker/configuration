@@ -7,31 +7,93 @@
 
 namespace Spryker\Zed\Configuration\Communication\Loader;
 
+use Generated\Shared\Transfer\ConfigurationSettingTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingValuesCriteriaTransfer;
 use Spryker\Client\Configuration\ConfigurationClientInterface;
-use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Service\UtilEncoding\UtilEncodingServiceInterface;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Zed\Configuration\Business\ConfigurationFacadeInterface;
+use Spryker\Zed\Configuration\Communication\Resolver\ConfigurationDataObjectResolverInterface;
 
 class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterface
 {
-    /**
-     * @var array<mixed>|null
-     */
-    protected ?array $mergedSchema = null;
+    protected const string NODE_KEY_KEY = 'key';
+
+    protected const string NODE_KEY_NAME = 'name';
+
+    protected const string NODE_KEY_DESCRIPTION = 'description';
+
+    protected const string NODE_KEY_ORDER = 'order';
+
+    protected const string NODE_KEY_STATUS = 'status';
+
+    protected const string NODE_KEY_SETTINGS = 'settings';
+
+    protected const string NODE_KEY_FEATURE_KEY = 'feature_key';
+
+    protected const string NODE_KEY_TAB_KEY = 'tab_key';
+
+    protected const string NODE_KEY_HELP_TEXT = 'help_text';
+
+    protected const string NODE_KEY_PLACEHOLDER = 'placeholder';
+
+    protected const string NODE_KEY_NOTE = 'note';
+
+    protected const string NODE_KEY_TEMPLATE = 'template';
+
+    protected const string NODE_KEY_TYPE = 'type';
+
+    protected const string NODE_KEY_DEFAULT_VALUE = 'default_value';
+
+    protected const string NODE_KEY_CURRENT_VALUE = 'current_value';
+
+    protected const string NODE_KEY_CURRENT_VALUE_PARSED = 'current_value_parsed';
+
+    protected const string NODE_KEY_INHERITED_VALUE = 'inherited_value';
+
+    protected const string NODE_KEY_INHERITED_VALUE_PARSED = 'inherited_value_parsed';
+
+    protected const string NODE_KEY_HAS_CUSTOM_VALUE = 'has_custom_value';
+
+    protected const string NODE_KEY_OPTIONS = 'options';
+
+    protected const string NODE_KEY_CONSTRAINTS = 'constraints';
+
+    protected const string NODE_KEY_DEPENDENCIES = 'dependencies';
+
+    protected const string NODE_KEY_FILE_UPLOAD = 'file_upload';
+
+    protected const string NODE_KEY_IS_SECRET = 'is_secret';
+
+    protected const string NODE_KEY_IS_STOREFRONT = 'is_storefront';
+
+    protected const string NODE_KEY_PENDING_SYNC = 'pending_sync';
+
+    protected const string NODE_KEY_IS_OVERRIDDEN = 'is_overridden';
+
+    protected const string NODE_KEY_OVERRIDE_INFO = 'override_info';
 
     public function __construct(
         protected ConfigurationFacadeInterface $configurationFacade,
         protected ConfigurationClientInterface $configurationClient,
+        protected ConfigurationDataObjectResolverInterface $dataObjectResolver,
+        protected UtilEncodingServiceInterface $utilEncodingService,
+        protected ConfigurationSchemaMetadataExtractorInterface $schemaMetadataExtractor,
     ) {
     }
 
-    public function loadSettingsForTab(string $tabKey, string $scope, ?string $scopeIdentifier = null): array
+    /**
+     * {@inheritDoc}
+     */
+    public function loadSettingsForTab(string $featureKey, string $tabKey, string $scope, ?string $scopeIdentifier = null): array
     {
         $allSettings = $this->configurationFacade->getAllConfigurationSettings();
 
         $tabSettings = array_filter(
             $allSettings,
-            fn ($setting) => $setting->getTabKey() === $tabKey && $this->isSettingAvailableForScope($setting, $scope),
+            fn ($setting) => $setting->getFeatureKey() === $featureKey
+                && $setting->getTabKey() === $tabKey
+                && $this->isSettingAvailableForScope($setting, $scope),
         );
 
         $keys = array_map(static fn ($setting) => $setting->getKey(), $tabSettings);
@@ -48,22 +110,28 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
 
         $storageData = $this->configurationClient->getStorageDataForScope($scope, $scopeIdentifier);
 
-        $groupMetadata = $this->extractGroupMetadata($tabKey);
+        $groupMetadata = $this->schemaMetadataExtractor->extractGroupMetadata($featureKey, $tabKey);
+        $settingOverrides = $this->schemaMetadataExtractor->extractSettingOverrides($featureKey, $tabKey);
         $groups = [];
 
         foreach ($tabSettings as $setting) {
             $key = $setting->getKeyOrFail();
             $groupKey = $setting->getGroupKeyOrFail();
 
+            if (!isset($groupMetadata[$groupKey])) {
+                continue;
+            }
+
             if (!isset($groups[$groupKey])) {
-                $metadata = $groupMetadata[$groupKey] ?? [];
+                $metadata = $groupMetadata[$groupKey];
 
                 $groups[$groupKey] = [
-                    'key' => $groupKey,
-                    'name' => $metadata['name'] ?? $this->formatKey($groupKey),
-                    'description' => $metadata['description'] ?? null,
-                    'order' => $metadata['order'] ?? 0,
-                    'settings' => [],
+                    static::NODE_KEY_KEY => $groupKey,
+                    static::NODE_KEY_NAME => $metadata[static::NODE_KEY_NAME] ?? $this->formatKey($groupKey),
+                    static::NODE_KEY_DESCRIPTION => $metadata[static::NODE_KEY_DESCRIPTION] ?? null,
+                    static::NODE_KEY_ORDER => $metadata[static::NODE_KEY_ORDER] ?? 0,
+                    static::NODE_KEY_SETTINGS => [],
+                    static::NODE_KEY_STATUS => $metadata[static::NODE_KEY_STATUS] ?? null,
                 ];
             }
 
@@ -76,46 +144,52 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
             $currentValueFormatted = $currentValue;
             $inheritedValueFormatted = $inheritedValue;
 
-            if ($setting->getType() === ConfigurationConstants::VALUE_TYPE_MULTISELECT) {
+            if ($setting->getType() === ConfigurationSchemaConstants::VALUE_TYPE_MULTISELECT) {
                 $currentValueFormatted = $this->parseJsonValue($currentValue);
                 $inheritedValueFormatted = $this->parseJsonValue($inheritedValue);
             }
 
             $pendingSync = $this->isPendingSync($setting, $currentValue, $storageData);
 
-            $groups[$groupKey]['settings'][] = [
-                'key' => $key,
-                'feature_key' => $setting->getFeatureKey(),
-                'tab_key' => $setting->getTabKey(),
-                'name' => $setting->getName(),
-                'description' => $setting->getDescription(),
-                'help_text' => $setting->getHelpText(),
-                'placeholder' => $setting->getPlaceholder(),
-                'note' => $setting->getNote(),
-                'template' => $setting->getTemplate(),
-                'type' => $setting->getType(),
-                'default_value' => $setting->getDefaultValue(),
-                'current_value' => $currentValue,
-                'current_value_parsed' => $currentValueFormatted,
-                'inherited_value' => $inheritedValue,
-                'inherited_value_parsed' => $inheritedValueFormatted,
-                'has_custom_value' => $hasCustomValue,
-                'options' => count($setting->getOptions()) ? $setting->getOptions() : [],
-                'constraints' => count($setting->getConstraints()) ? $setting->getConstraints() : [],
-                'dependencies' => count($setting->getDependencies()) ? $setting->getDependencies() : [],
-                'file_upload' => $setting->getFileUpload() ?: [],
-                'is_secret' => $setting->getIsSecret() ?? false,
-                'is_storefront' => $setting->getIsStorefront() ?? false,
-                'pending_sync' => $pendingSync,
-                'order' => $setting->getOrder() ?? 0,
+            $settingData = [
+                static::NODE_KEY_KEY => $key,
+                static::NODE_KEY_FEATURE_KEY => $setting->getFeatureKey(),
+                static::NODE_KEY_TAB_KEY => $setting->getTabKey(),
+                static::NODE_KEY_NAME => $setting->getName(),
+                static::NODE_KEY_DESCRIPTION => $setting->getDescription(),
+                static::NODE_KEY_HELP_TEXT => $setting->getHelpText(),
+                static::NODE_KEY_PLACEHOLDER => $setting->getPlaceholder(),
+                static::NODE_KEY_NOTE => $setting->getNote(),
+                static::NODE_KEY_TEMPLATE => $setting->getTemplate(),
+                static::NODE_KEY_TYPE => $setting->getType(),
+                static::NODE_KEY_DEFAULT_VALUE => $setting->getDefaultValue(),
+                static::NODE_KEY_CURRENT_VALUE => $currentValue,
+                static::NODE_KEY_CURRENT_VALUE_PARSED => $currentValueFormatted,
+                static::NODE_KEY_INHERITED_VALUE => $inheritedValue,
+                static::NODE_KEY_INHERITED_VALUE_PARSED => $inheritedValueFormatted,
+                static::NODE_KEY_HAS_CUSTOM_VALUE => $hasCustomValue,
+                static::NODE_KEY_OPTIONS => $setting->getOptions() ?: [],
+                static::NODE_KEY_CONSTRAINTS => $setting->getConstraints() ?: [],
+                static::NODE_KEY_DEPENDENCIES => $setting->getDependencies() ?: [],
+                static::NODE_KEY_FILE_UPLOAD => $setting->getFileUpload() ?: [],
+                ConfigurationSchemaConstants::SCHEMA_KEY_DATA_OBJECT => $setting->getDataObject(),
+                static::NODE_KEY_IS_SECRET => $setting->getIsSecret() ?? false,
+                static::NODE_KEY_IS_STOREFRONT => $setting->getIsStorefront() ?? false,
+                static::NODE_KEY_PENDING_SYNC => $pendingSync,
+                static::NODE_KEY_ORDER => $setting->getOrder() ?? 0,
+                static::NODE_KEY_STATUS => $setting->getStatus(),
+                static::NODE_KEY_IS_OVERRIDDEN => ($settingOverrides[$key] ?? []) !== [],
+                static::NODE_KEY_OVERRIDE_INFO => $settingOverrides[$key] ?? [],
             ];
+
+            $groups[$groupKey][static::NODE_KEY_SETTINGS][] = $this->dataObjectResolver->resolve($settingData);
         }
 
         foreach ($groups as &$group) {
-            usort($group['settings'], static fn (array $a, array $b) => $a['order'] <=> $b['order']);
+            usort($group[static::NODE_KEY_SETTINGS], static fn (array $a, array $b) => $a[static::NODE_KEY_ORDER] <=> $b[static::NODE_KEY_ORDER]);
         }
 
-        usort($groups, static fn (array $a, array $b) => $a['order'] <=> $b['order']);
+        usort($groups, static fn (array $a, array $b) => $a[static::NODE_KEY_ORDER] <=> $b[static::NODE_KEY_ORDER]);
 
         return $groups;
     }
@@ -126,8 +200,6 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
     }
 
     /**
-     * @param string|null $value
-     *
      * @return array<string>
      */
     protected function parseJsonValue(?string $value): array
@@ -136,9 +208,9 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
             return [];
         }
 
-        $decoded = json_decode($value, true);
+        $decoded = $this->utilEncodingService->decodeJson($value, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+        if (!is_array($decoded)) {
             return [];
         }
 
@@ -146,78 +218,18 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
     }
 
     /**
-     * @param string $tabKey
-     *
-     * @return array<string, array<string, mixed>>
-     */
-    protected function extractGroupMetadata(string $tabKey): array
-    {
-        $schema = $this->getMergedSchema();
-        $groupMetadata = [];
-
-        if (!isset($schema[ConfigurationConstants::SCHEMA_KEY_FEATURES]) || !is_array($schema[ConfigurationConstants::SCHEMA_KEY_FEATURES])) {
-            return $groupMetadata;
-        }
-
-        foreach ($schema[ConfigurationConstants::SCHEMA_KEY_FEATURES] as $feature) {
-            if (!isset($feature[ConfigurationConstants::SCHEMA_KEY_TABS]) || !is_array($feature[ConfigurationConstants::SCHEMA_KEY_TABS])) {
-                continue;
-            }
-
-            foreach ($feature[ConfigurationConstants::SCHEMA_KEY_TABS] as $tab) {
-                if ($tab[ConfigurationConstants::SCHEMA_KEY_KEY] !== $tabKey || !isset($tab[ConfigurationConstants::SCHEMA_KEY_GROUPS]) || !is_array($tab[ConfigurationConstants::SCHEMA_KEY_GROUPS])) {
-                    continue;
-                }
-
-                foreach ($tab[ConfigurationConstants::SCHEMA_KEY_GROUPS] as $group) {
-                    $groupKey = $group[ConfigurationConstants::SCHEMA_KEY_KEY] ?? null;
-
-                    if ($groupKey === null) {
-                        continue;
-                    }
-
-                    $groupMetadata[$groupKey] = [
-                        'name' => $group[ConfigurationConstants::SCHEMA_KEY_NAME] ?? $this->formatKey($groupKey),
-                        'description' => $group[ConfigurationConstants::SCHEMA_KEY_DESCRIPTION] ?? null,
-                        'order' => $group[ConfigurationConstants::SCHEMA_KEY_ORDER] ?? 0,
-                    ];
-                }
-            }
-        }
-
-        return $groupMetadata;
-    }
-
-    /**
-     * @return array<mixed>
-     */
-    protected function getMergedSchema(): array
-    {
-        if ($this->mergedSchema === null) {
-            $this->mergedSchema = $this->configurationFacade->getMergedConfigurationSchema();
-        }
-
-        return $this->mergedSchema;
-    }
-
-    /**
      * Determines whether a storefront-enabled setting has a DB value that differs from
      * what is currently in Redis, meaning P&S has not yet propagated the change.
      *
-     * @param \Generated\Shared\Transfer\ConfigurationSettingTransfer $setting
-     * @param string|null $currentDbValue
      * @param array<string, string> $storageData
-     *
-     * @return bool
      */
-    protected function isPendingSync($setting, ?string $currentDbValue, array $storageData): bool
+    protected function isPendingSync(ConfigurationSettingTransfer $setting, ?string $currentDbValue, array $storageData): bool
     {
         if (!$setting->getIsStorefront() || $setting->getIsSecret()) {
             return false;
         }
 
         if ($currentDbValue === null) {
-            // No DB value at this scope — storage should not have it either.
             return isset($storageData[$setting->getKey()]);
         }
 
@@ -226,13 +238,7 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
         return $storageValue !== $currentDbValue;
     }
 
-    /**
-     * @param \Generated\Shared\Transfer\ConfigurationSettingTransfer $setting
-     * @param string $scope
-     *
-     * @return bool
-     */
-    protected function isSettingAvailableForScope($setting, string $scope): bool
+    protected function isSettingAvailableForScope(ConfigurationSettingTransfer $setting, string $scope): bool
     {
         $allowedScopes = $setting->getScopes();
 

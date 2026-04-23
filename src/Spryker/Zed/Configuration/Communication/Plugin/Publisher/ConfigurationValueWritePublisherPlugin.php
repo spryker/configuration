@@ -51,6 +51,7 @@ class ConfigurationValueWritePublisherPlugin extends AbstractPlugin implements P
             ConfigurationConstants::ENTITY_SPY_CONFIGURATION_VALUE_CREATE,
             ConfigurationConstants::ENTITY_SPY_CONFIGURATION_VALUE_UPDATE,
             ConfigurationConstants::ENTITY_SPY_CONFIGURATION_VALUE_DELETE,
+            ConfigurationConstants::CONFIGURATION_VALUE_PUBLISH_WRITE,
         ];
     }
 }

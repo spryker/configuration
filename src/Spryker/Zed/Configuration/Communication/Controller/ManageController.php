@@ -11,6 +11,7 @@ use Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer;
 use Generated\Shared\Transfer\ConfigurationValueDeletionTransfer;
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
 use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Zed\Kernel\Communication\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +26,13 @@ class ManageController extends AbstractController
 
     protected const string REQUEST_PARAM_SCOPE_IDENTIFIER = 'scope_identifier';
 
+    protected const string REQUEST_PARAM_FEATURE = 'feature';
+
     protected const string REQUEST_PARAM_TAB = 'tab';
+
+    protected const string REQUEST_PARAM_TERM = 'term';
+
+    protected const int SEARCH_TERM_MAX_LENGTH = 255;
 
     protected const string REQUEST_BODY_CHANGES = 'changes';
 
@@ -45,6 +52,8 @@ class ManageController extends AbstractController
 
     protected const string RESPONSE_KEY_SETTINGS = 'settings';
 
+    protected const string RESPONSE_KEY_MATCHES = 'matches';
+
     protected const string FALLBACK_SETTING_KEY = 'unknown';
 
     protected const string ACL_BUNDLE_NAME = 'configuration';
@@ -54,8 +63,6 @@ class ManageController extends AbstractController
     protected const string ACL_ACTION_SAVE = 'save';
 
     /**
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     *
      * @return array<string, mixed>
      */
     public function indexAction(Request $request): array
@@ -69,16 +76,18 @@ class ManageController extends AbstractController
             $scopeIdentifier = null;
         }
 
+        $selectedFeature = $request->query->get(static::REQUEST_PARAM_FEATURE);
         $selectedTab = $request->query->get(static::REQUEST_PARAM_TAB);
 
         $navigationTree = $this->getFactory()
             ->createConfigurationNavigationBuilder()
             ->buildNavigationTree($scope);
 
-        if (!$selectedTab && $navigationTree) {
+        if ((!$selectedTab || !$selectedFeature) && $navigationTree) {
             $firstFeature = reset($navigationTree);
-            $firstTab = reset($firstFeature[ConfigurationConstants::SCHEMA_KEY_TABS]);
-            $selectedTab = $firstTab[ConfigurationConstants::SCHEMA_KEY_KEY] ?? null;
+            $firstTab = reset($firstFeature[ConfigurationSchemaConstants::SCHEMA_KEY_TABS]);
+            $selectedFeature = $selectedFeature ?: ($firstFeature[ConfigurationSchemaConstants::SCHEMA_KEY_KEY] ?? null);
+            $selectedTab = $selectedTab ?: ($firstTab[ConfigurationSchemaConstants::SCHEMA_KEY_KEY] ?? null);
         }
 
         $availableScopes = $this->getFactory()->getConfig()->getAvailableScopes();
@@ -102,14 +111,15 @@ class ManageController extends AbstractController
         }
 
         $tabSettings = [];
-        if ($selectedTab) {
+        if ($selectedFeature && $selectedTab) {
             $tabSettings = $this->getFactory()
                 ->createConfigurationSettingsLoader()
-                ->loadSettingsForTab($selectedTab, $scope, $scopeIdentifier);
+                ->loadSettingsForTab($selectedFeature, $selectedTab, $scope, $scopeIdentifier);
         }
 
         return $this->viewResponse([
             'navigationTree' => $navigationTree,
+            'selectedFeature' => $selectedFeature,
             'selectedTab' => $selectedTab,
             'tabSettings' => $tabSettings,
             'currentScope' => $scope,
@@ -122,17 +132,10 @@ class ManageController extends AbstractController
         ]);
     }
 
-    /**
-     * AJAX endpoint to save changed configuration values (batch save)
-     *
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
-     */
     public function saveAction(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $changedValues = $data[static::REQUEST_BODY_CHANGES] ?? [];
+        $data = $this->getFactory()->getUtilEncodingService()->decodeJson($request->getContent(), true);
+        $changedValues = is_array($data) ? ($data[static::REQUEST_BODY_CHANGES] ?? []) : [];
 
         $collectionRequest = $this->buildCollectionRequest($changedValues);
         $responseTransfer = $this->getFacade()->saveConfigurationValues($collectionRequest);
@@ -160,8 +163,6 @@ class ManageController extends AbstractController
 
     /**
      * @param array<int, array<string, mixed>> $changedValues
-     *
-     * @return \Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer
      */
     protected function buildCollectionRequest(array $changedValues): ConfigurationValueCollectionRequestTransfer
     {
@@ -204,15 +205,28 @@ class ManageController extends AbstractController
         return $collectionRequest;
     }
 
-    /**
-     * AJAX endpoint to load settings for a specific tab
-     *
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     *
-     * @return \Symfony\Component\HttpFoundation\JsonResponse
-     */
+    public function searchAction(Request $request): JsonResponse
+    {
+        /** @var string $term */
+        $term = $request->query->get(static::REQUEST_PARAM_TERM, '');
+        /** @var string $scope */
+        $scope = $request->query->get(static::REQUEST_PARAM_SCOPE, ConfigurationConstants::SCOPE_GLOBAL);
+
+        if (mb_strlen($term) > static::SEARCH_TERM_MAX_LENGTH) {
+            $term = mb_substr($term, 0, static::SEARCH_TERM_MAX_LENGTH);
+        }
+
+        $matches = $this->getFacade()->searchConfigurationSchema($term, $scope);
+
+        return $this->jsonResponse([
+            static::RESPONSE_KEY_MATCHES => $matches,
+        ]);
+    }
+
     public function loadTabAction(Request $request): JsonResponse
     {
+        /** @var string $featureKey */
+        $featureKey = $request->query->get(static::REQUEST_PARAM_FEATURE);
         /** @var string $tabKey */
         $tabKey = $request->query->get(static::REQUEST_PARAM_TAB);
         /** @var string $scope */
@@ -224,16 +238,16 @@ class ManageController extends AbstractController
             $scopeIdentifier = null;
         }
 
-        if (!$tabKey) {
+        if (!$featureKey || !$tabKey) {
             return $this->jsonResponse([
                 static::RESPONSE_KEY_SUCCESS => false,
-                static::RESPONSE_KEY_ERROR => 'Tab key is required',
+                static::RESPONSE_KEY_ERROR => 'Feature key and tab key are required',
             ]);
         }
 
         $tabSettings = $this->getFactory()
             ->createConfigurationSettingsLoader()
-            ->loadSettingsForTab($tabKey, $scope, $scopeIdentifier);
+            ->loadSettingsForTab($featureKey, $tabKey, $scope, $scopeIdentifier);
 
         return $this->jsonResponse([
             static::RESPONSE_KEY_SUCCESS => true,
@@ -251,15 +265,15 @@ class ManageController extends AbstractController
         $forms = [];
 
         foreach ($tabSettings as $group) {
-            foreach ($group[ConfigurationConstants::SCHEMA_KEY_SETTINGS] as $setting) {
-                if ($setting[ConfigurationConstants::SCHEMA_KEY_TYPE] !== ConfigurationConstants::VALUE_TYPE_FILE) {
+            foreach ($group[ConfigurationSchemaConstants::SCHEMA_KEY_SETTINGS] as $setting) {
+                if ($setting[ConfigurationSchemaConstants::SCHEMA_KEY_TYPE] !== ConfigurationSchemaConstants::VALUE_TYPE_FILE) {
                     continue;
                 }
 
-                $forms[$setting[ConfigurationConstants::SCHEMA_KEY_KEY]] = $this->getFactory()
+                $forms[$setting[ConfigurationSchemaConstants::SCHEMA_KEY_KEY]] = $this->getFactory()
                     ->createFileUploadForm(
-                        $setting[ConfigurationConstants::SCHEMA_KEY_FILE_UPLOAD] ?? [],
-                        $setting[ConfigurationConstants::SCHEMA_KEY_KEY],
+                        $setting[ConfigurationSchemaConstants::SCHEMA_KEY_FILE_UPLOAD] ?? [],
+                        $setting[ConfigurationSchemaConstants::SCHEMA_KEY_KEY],
                     )
                     ->createView();
             }

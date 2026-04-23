@@ -12,8 +12,8 @@ use Generated\Shared\Transfer\ConfigurationScopeTransfer;
 use Generated\Shared\Transfer\ConfigurationValueRequestTransfer;
 use Generated\Shared\Transfer\SynchronizationDataTransfer;
 use ReflectionProperty;
+use Spryker\Client\Configuration\Reader\ConfigurationReaderInterface;
 use Spryker\Client\Configuration\Reader\ConfigurationStorageReader;
-use Spryker\Client\Configuration\Reader\ConfigurationStorageReaderInterface;
 use Spryker\Client\Storage\StorageClientInterface;
 use Spryker\Service\Synchronization\Dependency\Plugin\SynchronizationKeyGeneratorPluginInterface;
 use Spryker\Service\Synchronization\SynchronizationServiceInterface;
@@ -80,6 +80,7 @@ class GetConfigurationValueClientTest extends Unit
     protected function _before(): void
     {
         $this->clearStaticCaches();
+        $this->tester->mockFacadeReaderPathAsUnavailable($this->createMock(ConfigurationReaderInterface::class));
         $this->mockStorageReader(static::TEST_SETTINGS_MAP, []);
     }
 
@@ -211,7 +212,7 @@ class GetConfigurationValueClientTest extends Unit
         array $settingsMap,
         array $globalStorageData,
         array $storeStorageData,
-    ): ConfigurationStorageReaderInterface {
+    ): ConfigurationReaderInterface {
         $sharedConfigMock = $this->createMock(SprykerConfigurationConfig::class);
         $sharedConfigMock->method('getScopeHierarchy')->willReturn([
             'global' => null,

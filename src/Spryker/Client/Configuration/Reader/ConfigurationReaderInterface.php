@@ -9,7 +9,7 @@ namespace Spryker\Client\Configuration\Reader;
 
 use Generated\Shared\Transfer\ConfigurationValueRequestTransfer;
 
-interface ConfigurationStorageReaderInterface
+interface ConfigurationReaderInterface
 {
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed;
 

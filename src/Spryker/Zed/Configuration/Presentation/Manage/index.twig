@@ -15,17 +15,14 @@
 {% endblock %}
 
 {% block content %}
-
     {% if not isEditable %}
-    <div class="alert alert-warning">
-        <div class="alert__text">
-            <i class="fa fa-lock"></i>
+        <div class="alert alert-warning">
+            <span class="material-symbols-outlined">lock_person</span>
             {{ 'You do not have permission to edit configuration settings.' | trans }}
         </div>
-    </div>
     {% endif %}
 
-    <div class="configuration-management"
+    <div class="configuration-management card"
          data-scope="{{ currentScope }}"
          data-scope-identifier="{{ currentScopeIdentifier }}"
          data-read-only="{{ not isEditable ? '1' : '0' }}"
@@ -38,71 +35,49 @@
          data-i18n-saving-label="{{ '<i class=&quot;fa fa-spinner fa-spin&quot;></i> %label%' | replace({'%label%': 'Saving...' | trans}) | e('html_attr') }}"
          data-i18n-save-label="{{ '<i class=&quot;fa fa-save&quot;></i> %label%' | replace({'%label%': 'Save Configuration' | trans}) | e('html_attr') }}">
         {# Top Bar: Scope Selector + Search #}
-        <div class="config-top-bar">
-            <div class="scope-selector">
-                {% set nonGlobalScopes = availableScopes | filter(s => s != 'global') %}
-                {% if nonGlobalScopes | length == 1 %}
-                    {# Single non-global scope: combine scope type + identifier into one selector #}
-                    {% set singleScope = nonGlobalScopes | first %}
-                    {% set singleScopeIdentifiers = allScopeIdentifiers[singleScope] ?? [] %}
-                    <select id="scope-combined" class="form-control" style="width: 200px; display: inline-block;" data-qa="scope-combined">
-                        <option value="global:" {% if currentScope == 'global' %}selected{% endif %}>
-                            {{ ('Default (All ' ~ singleScope|capitalize ~ 's)') | trans }}
-                        </option>
-                        {% for identifier in singleScopeIdentifiers %}
-                            <option value="{{ singleScope }}:{{ identifier }}" {% if currentScope == singleScope and identifier == currentScopeIdentifier %}selected{% endif %}>
-                                {{ identifier }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                {% else %}
-                    {# Multiple non-global scopes: keep separate scope type + identifier selectors #}
-                    <label for="scope-type">{{ 'Scope:' | trans }}</label>
-                    <select id="scope-type" class="form-control" style="width: 150px; display: inline-block;">
-                        {% for scope in availableScopes %}
-                            <option value="{{ scope }}" {% if scope == currentScope %}selected{% endif %}>
-                                {{ scope|capitalize }}
-                            </option>
-                        {% endfor %}
-                    </select>
-
-                    {% if scopeIdentifiers is not empty %}
-                        <select id="scope-identifier" class="form-control" style="width: 150px; display: inline-block;">
-                            {% for identifier in scopeIdentifiers %}
-                                <option value="{{ identifier }}" {% if identifier == currentScopeIdentifier %}selected{% endif %}>
-                                    {{ identifier }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    {% endif %}
-                {% endif %}
+        
+        <div class="card-header">
+            <div class="card-title">
+                {{ 'Configuration Management' | trans }}
             </div>
+            <div class="card-action card-action--expand">
+                <button type="button" class="btn btn-primary config-open-menu-button" data-bs-toggle="offcanvas" data-bs-target="#config-sidebar" role="button" aria-controls="configSidebar">
+                    <span class="material-symbols-outlined">settings</span>
+                    {{ 'configuration.configure' | trans }}
+                </button>
 
-            <div class="config-search">
-                <input type="text" id="config-search" class="form-control" placeholder="{{ 'Search settings...' | trans }}" style="width: 300px;" data-qa="config-search">
+                {% include '@Configuration/Manage/_partials/scope-selector.twig' with {
+                    availableScopes: availableScopes,
+                } %}
             </div>
         </div>
 
         {# Main Layout: Sidebar + Content #}
-        <div class="config-layout">
+        <div class="config-layout card-body">
             {# Left Sidebar Navigation #}
-            <div class="config-sidebar">
+            <div class="config-sidebar offcanvas offcanvas-start" id="config-sidebar">
+                <div class="js-scope-selector-placeholder"></div>
+
                 <nav class="config-navigation">
                     {% for feature in navigationTree %}
                         <div class="nav-feature">
-                            <div class="feature-header" data-feature="{{ feature.key }}">
+                            <div class="feature-header" data-feature="{{ feature.key }}" data-bs-toggle="collapse" data-bs-target="#{{ feature.key }}"{% if feature.description %} title="{{ feature.description | trans | e('html_attr') }}"{% endif %}>
                                 <span class="side-menu__icon material-symbols-outlined">expand_more</span>
                                 <span>{{ feature.name | trans }}</span>
+                                {% include '@Configuration/Manage/_partials/status-badge.twig' with { status: feature.status } only %}
                             </div>
-                            <ul class="feature-tabs">
+                            <ul class="feature-tabs collapse show" id="{{ feature.key }}">
                                 {% for tab in feature.tabs %}
-                                    <li class="nav-tab {% if tab.key == selectedTab %}active{% endif %}"
+                                    <li class="feature-tabs__item js-nav-tab {% if tab.key == selectedTab and feature.key == selectedFeature %}active{% endif %}"
                                         data-tab="{{ tab.key }}"
-                                        data-feature="{{ feature.key }}">
+                                        data-feature="{{ feature.key }}"
+                                        {% if tab.description %}title="{{ tab.description | trans | e('html_attr') }}"{% endif %}>
                                         {% if tab.icon %}
-                                            <span class="side-menu__icon material-symbols-outlined">{{ tab.icon }}</span>
+                                            <span class="feature-tabs__icon material-symbols-outlined">{{ tab.icon }}</span>
                                         {% endif %}
                                         <span class="nav-label" data-qa="menu-item-label">{{ tab.name | trans }}</span>
+
+                                        {% include '@Configuration/Manage/_partials/status-badge.twig' with { status: tab.status } only %}
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -114,34 +89,39 @@
             {# Main Content Area #}
             <div class="config-content" id="config-content">
                 {% for group in tabSettings %}
-                    <div class="setting-group" data-group="{{ group.key }}">
-                        <h3 class="group-header">{{ group.name | trans }}</h3>
-                        {% if group.description %}
-                            <p class="group-description">{{ group.description | trans }}</p>
-                        {% endif %}
-
-                        {% for setting in group.settings %}
-                            {% include '@Configuration/Manage/_partials/setting-row.twig' %}
-                        {% endfor %}
+                    <div class="card setting-group" data-group="{{ group.key }}">
+                        <div class="card-header d-block">
+                            <h3 class="group-title">{{ group.name | trans }}{% include '@Configuration/Manage/_partials/status-badge.twig' with { status: group.status } only %}</h3>
+                            
+                            {% if group.description %}
+                                <p class="group-description">{{ group.description | trans }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            {% for setting in group.settings %}
+                                {% include '@Configuration/Manage/_partials/setting-row.twig' %}
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endfor %}
             </div>
         </div>
 
         {% if isEditable %}
-            {# Sticky Bottom Save Bar (hidden by default) #}
-            <div class="config-save-bar" id="config-save-bar" style="display: none;">
+            <div class="config-save-bar" id="config-save-bar">
                 <div class="save-bar-content">
                     <span class="changes-count">
-                        <i class="fa fa-exclamation-triangle"></i>
+                        <span class="material-symbols-outlined">warning</span>
                         <span id="changes-count">0</span> {{ 'unsaved changes' | trans }}
                     </span>
                     <div class="save-bar-actions">
                         <button type="button" class="btn btn-default" id="reset-changes" data-qa="reset-changes">
-                            <i class="fa fa-undo"></i> {{ 'Reset Changes' | trans }}
+                            <span class="material-symbols-outlined">history</span>
+                            {{ 'Reset Changes' | trans }}
                         </button>
                         <button type="button" class="btn btn-primary" id="save-configuration" data-qa="save-configuration">
-                            <i class="fa fa-save"></i> {{ 'Save Configuration' | trans }}
+                            <span class="material-symbols-outlined">save</span>
+                            {{ 'Save Configuration' | trans }}
                         </button>
                     </div>
                 </div>

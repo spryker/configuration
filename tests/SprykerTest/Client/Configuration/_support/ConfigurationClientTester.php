@@ -8,6 +8,7 @@
 namespace SprykerTest\Client\Configuration;
 
 use Codeception\Actor;
+use Spryker\Client\Configuration\Reader\ConfigurationReaderInterface;
 
 /**
  * @method void wantToTest($text)
@@ -27,4 +28,15 @@ use Codeception\Actor;
 class ConfigurationClientTester extends Actor
 {
     use _generated\ConfigurationClientTesterActions;
+
+    /**
+     * Stubs out the Zed facade-reader path in the client factory so unit tests that exercise
+     * only the storage-reader path do not trigger GlobalContainer resolution of the
+     * `SERVICE_CONFIGURATION` application service (which is unavailable in unit context).
+     */
+    public function mockFacadeReaderPathAsUnavailable(ConfigurationReaderInterface $facadeReaderStub): void
+    {
+        $this->mockFactoryMethod('createConfigurationFacadeReader', $facadeReaderStub);
+        $this->mockFactoryMethod('getIsConfigurationServiceProvided', false);
+    }
 }

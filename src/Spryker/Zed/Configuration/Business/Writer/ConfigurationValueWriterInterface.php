@@ -14,10 +14,6 @@ interface ConfigurationValueWriterInterface
 {
     /**
      * Validates and saves a batch of configuration values, processes deletions.
-     *
-     * @param \Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer
-     *
-     * @return \Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer
      */
     public function saveConfigurationValues(
         ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer,

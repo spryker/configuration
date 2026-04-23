@@ -12,7 +12,7 @@ use Generated\Shared\Transfer\HtmlSanitizerAllowedAttributeTransfer;
 use Generated\Shared\Transfer\HtmlSanitizerAllowedElementTransfer;
 use Generated\Shared\Transfer\HtmlSanitizerConfigTransfer;
 use Spryker\Service\UtilSanitizeXss\UtilSanitizeXssServiceInterface;
-use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
 
 class ConfigurationValueSanitizer implements ConfigurationValueSanitizerInterface
@@ -27,7 +27,7 @@ class ConfigurationValueSanitizer implements ConfigurationValueSanitizerInterfac
     {
         $settingsMap = $this->schemaProvider->getSettingsMap();
 
-        return isset($settingsMap[$settingKey][ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS]);
+        return !empty($settingsMap[$settingKey][ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS]);
     }
 
     public function sanitize(ConfigurationValueTransfer $configurationValueTransfer): void
@@ -39,7 +39,7 @@ class ConfigurationValueSanitizer implements ConfigurationValueSanitizerInterfac
         }
 
         $settingKey = $configurationValueTransfer->getSettingKeyOrFail();
-        $sanitizeXssConfig = $this->schemaProvider->getSettingsMap()[$settingKey][ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS];
+        $sanitizeXssConfig = $this->schemaProvider->getSettingsMap()[$settingKey][ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS];
 
         $htmlSanitizerConfigTransfer = $this->buildHtmlSanitizerConfigTransfer($sanitizeXssConfig);
         $sanitizedValue = $this->utilSanitizeXssService->sanitize($value, $htmlSanitizerConfigTransfer);
@@ -54,31 +54,31 @@ class ConfigurationValueSanitizer implements ConfigurationValueSanitizerInterfac
     {
         $htmlSanitizerConfigTransfer = new HtmlSanitizerConfigTransfer();
 
-        if ($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_SAFE_ELEMENTS] ?? false) {
+        if ($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_SAFE_ELEMENTS] ?? false) {
             $htmlSanitizerConfigTransfer->setIsAllowSafeElements(true);
         }
 
-        if ($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_STATIC_ELEMENTS] ?? false) {
+        if ($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_STATIC_ELEMENTS] ?? false) {
             $htmlSanitizerConfigTransfer->setIsAllowStaticElements(true);
         }
 
         $this->addAllowElements($htmlSanitizerConfigTransfer, $sanitizeXssConfig);
         $this->addAllowAttributes($htmlSanitizerConfigTransfer, $sanitizeXssConfig);
 
-        if ($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_FORCE_HTTPS_URLS] ?? false) {
+        if ($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_FORCE_HTTPS_URLS] ?? false) {
             $htmlSanitizerConfigTransfer->setIsForceHttpsUrls(true);
         }
 
-        if ($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_RELATIVE_LINKS] ?? false) {
+        if ($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_RELATIVE_LINKS] ?? false) {
             $htmlSanitizerConfigTransfer->setIsAllowRelativeLinks(true);
         }
 
-        if (!empty($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_SCHEMES])) {
-            $htmlSanitizerConfigTransfer->setAllowedLinkSchemes($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_SCHEMES]);
+        if (!empty($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_SCHEMES])) {
+            $htmlSanitizerConfigTransfer->setAllowedLinkSchemes($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_SCHEMES]);
         }
 
-        if (!empty($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_HOSTS])) {
-            $htmlSanitizerConfigTransfer->setAllowedLinkHosts($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_HOSTS]);
+        if (!empty($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_HOSTS])) {
+            $htmlSanitizerConfigTransfer->setAllowedLinkHosts($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOWED_LINK_HOSTS]);
         }
 
         return $htmlSanitizerConfigTransfer;
@@ -90,7 +90,7 @@ class ConfigurationValueSanitizer implements ConfigurationValueSanitizerInterfac
      */
     protected function addAllowElements(HtmlSanitizerConfigTransfer $htmlSanitizerConfigTransfer, array $sanitizeXssConfig): void
     {
-        foreach ($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_ELEMENTS] ?? [] as $element => $attributes) {
+        foreach ($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_ELEMENTS] ?? [] as $element => $attributes) {
             $allowedAttributes = $attributes === '*' ? ['*'] : (array)$attributes;
 
             $htmlSanitizerConfigTransfer->addAllowedElement(
@@ -107,7 +107,7 @@ class ConfigurationValueSanitizer implements ConfigurationValueSanitizerInterfac
      */
     protected function addAllowAttributes(HtmlSanitizerConfigTransfer $htmlSanitizerConfigTransfer, array $sanitizeXssConfig): void
     {
-        foreach ($sanitizeXssConfig[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_ATTRIBUTES] ?? [] as $attribute => $elements) {
+        foreach ($sanitizeXssConfig[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS_ALLOW_ATTRIBUTES] ?? [] as $attribute => $elements) {
             $allowedElements = $elements === '*' ? ['*'] : (array)$elements;
 
             $htmlSanitizerConfigTransfer->addAllowedAttribute(

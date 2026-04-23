@@ -7,6 +7,8 @@
 
 namespace Spryker\Zed\Configuration\Persistence;
 
+use Orm\Zed\Configuration\Persistence\SpyConfigurationStorageQuery;
+use Orm\Zed\Configuration\Persistence\SpyConfigurationValueQuery;
 use Spryker\Zed\Kernel\Persistence\AbstractPersistenceFactory;
 
 /**
@@ -16,4 +18,13 @@ use Spryker\Zed\Kernel\Persistence\AbstractPersistenceFactory;
  */
 class ConfigurationPersistenceFactory extends AbstractPersistenceFactory
 {
+    public function createSpyConfigurationValueQuery(): SpyConfigurationValueQuery
+    {
+        return SpyConfigurationValueQuery::create();
+    }
+
+    public function createSpyConfigurationStorageQuery(): SpyConfigurationStorageQuery
+    {
+        return SpyConfigurationStorageQuery::create();
+    }
 }

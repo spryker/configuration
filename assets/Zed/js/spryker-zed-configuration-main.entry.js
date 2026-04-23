@@ -6,7 +6,8 @@
 'use strict';
 
 require('./modules/main');
-require('./modules/configuration-managment');
+require('./modules/configuration-management');
+require('./modules/json-editor');
 import { FileUploadHandler } from './modules/file-upload-handler';
 
 new FileUploadHandler();

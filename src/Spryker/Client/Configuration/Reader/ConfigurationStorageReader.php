@@ -17,7 +17,7 @@ use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptorInterface;
 use Spryker\Shared\Configuration\Reader\AbstractConfigurationValueResolver;
 use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReaderInterface;
 
-class ConfigurationStorageReader extends AbstractConfigurationValueResolver implements ConfigurationStorageReaderInterface
+class ConfigurationStorageReader extends AbstractConfigurationValueResolver implements ConfigurationReaderInterface
 {
     /**
      * @var array<string, mixed>

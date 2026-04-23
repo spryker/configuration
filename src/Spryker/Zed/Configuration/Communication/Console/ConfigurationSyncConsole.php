@@ -48,6 +48,10 @@ class ConfigurationSyncConsole extends Console
             ),
         );
 
+        foreach ($configurationSyncResponseTransfer->getWarningMessages() as $warningMessage) {
+            $this->warning($warningMessage);
+        }
+
         return static::CODE_SUCCESS;
     }
 }

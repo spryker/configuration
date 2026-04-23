@@ -10,9 +10,10 @@ namespace Spryker\Zed\Configuration\Business\Writer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
-use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptorInterface;
 use Spryker\Zed\Configuration\Business\Cache\ConfigurationCacheManagerInterface;
+use Spryker\Zed\Configuration\Business\Logger\ConfigurationAuditLoggerInterface;
 use Spryker\Zed\Configuration\Business\Sanitizer\ConfigurationValueSanitizerInterface;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationValueValidatorInterface;
@@ -33,6 +34,7 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
         protected ConfigurationValueValidatorInterface $validator,
         protected ConfigurationValueEncryptorInterface $encryptor,
         protected ConfigurationSchemaProviderInterface $schemaProvider,
+        protected ConfigurationAuditLoggerInterface $auditLogger,
         protected array $preSavePlugins,
         protected array $postSavePlugins,
         protected ConfigurationValueSanitizerInterface $sanitizer,
@@ -48,13 +50,12 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
     }
 
     protected function executeSaveConfigurationValuesTransaction(
-        ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer
+        ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer,
     ): ConfigurationValueCollectionResponseTransfer {
         $configurationValueCollectionRequestTransfer = $this->executePreSavePlugins($configurationValueCollectionRequestTransfer);
 
-        $savedCount = 0;
-
         $errors = [];
+
         foreach ($configurationValueCollectionRequestTransfer->getConfigurationValues() as $configurationValueTransfer) {
             if ($this->sanitizer->isSanitizeXssEnabled($configurationValueTransfer->getSettingKeyOrFail())) {
                 $this->sanitizer->sanitize($configurationValueTransfer);
@@ -64,19 +65,36 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
 
             if (!$validationResponse->getIsValid()) {
                 $errors = array_merge($errors, (array)$validationResponse->getErrors());
-
-                continue;
             }
+        }
 
+        if ($errors !== []) {
+            $this->auditLogger->logConfigurationValueSaveFailed($configurationValueCollectionRequestTransfer, $errors);
+
+            return $this->buildResponse(0, $errors);
+        }
+
+        $savedCount = 0;
+
+        foreach ($configurationValueCollectionRequestTransfer->getConfigurationValues() as $configurationValueTransfer) {
             $this->encryptIfSecret($configurationValueTransfer);
             $this->entityManager->saveConfigurationValue($configurationValueTransfer);
             $this->invalidateCache($configurationValueTransfer);
+            $this->auditLogger->logConfigurationValueSaved($configurationValueTransfer);
 
             $savedCount++;
         }
 
         $savedCount = $this->deleteConfigurationValues($configurationValueCollectionRequestTransfer, $savedCount);
 
+        return $this->executePostSavePlugins($this->buildResponse($savedCount, []));
+    }
+
+    /**
+     * @param array<\Generated\Shared\Transfer\ConfigurationErrorTransfer> $errors
+     */
+    protected function buildResponse(int $savedCount, array $errors): ConfigurationValueCollectionResponseTransfer
+    {
         $response = (new ConfigurationValueCollectionResponseTransfer())
             ->setIsSuccess($errors === [])
             ->setSavedCount($savedCount);
@@ -85,7 +103,7 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
             $response->addError($error);
         }
 
-        return $this->executePostSavePlugins($response);
+        return $response;
     }
 
     protected function encryptIfSecret(ConfigurationValueTransfer $configurationValueTransfer): void
@@ -93,7 +111,7 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
         $settingKey = $configurationValueTransfer->getSettingKeyOrFail();
         $settingsMap = $this->schemaProvider->getSettingsMap();
 
-        if (!isset($settingsMap[$settingKey]) || empty($settingsMap[$settingKey][ConfigurationConstants::SCHEMA_KEY_SECRET])) {
+        if (!isset($settingsMap[$settingKey]) || empty($settingsMap[$settingKey][ConfigurationSchemaConstants::SCHEMA_KEY_SECRET])) {
             return;
         }
 
@@ -137,7 +155,7 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
         );
     }
 
-    public function deleteConfigurationValues(ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer, int $savedCount): int
+    protected function deleteConfigurationValues(ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer, int $savedCount): int
     {
         foreach ($configurationValueCollectionRequestTransfer->getDeletionKeys() as $deletionTransfer) {
             $this->entityManager->deleteConfigurationValue(

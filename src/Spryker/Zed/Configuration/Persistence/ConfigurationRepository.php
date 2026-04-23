@@ -8,7 +8,6 @@
 namespace Spryker\Zed\Configuration\Persistence;
 
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
-use Orm\Zed\Configuration\Persistence\SpyConfigurationValueQuery;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Spryker\Zed\Kernel\Persistence\AbstractRepository;
 
@@ -19,7 +18,7 @@ class ConfigurationRepository extends AbstractRepository implements Configuratio
 {
     public function findConfigurationValueByKeyAndScope(string $key, string $scope, ?string $scopeIdentifier = null): ?ConfigurationValueTransfer
     {
-        $valueQuery = $this->getConfigurationValueQuery()
+        $valueQuery = $this->getFactory()->createSpyConfigurationValueQuery()
             ->filterBySettingKey($key)
             ->filterByScope($scope);
 
@@ -44,13 +43,18 @@ class ConfigurationRepository extends AbstractRepository implements Configuratio
             ->setValue($valueEntity->getValue());
     }
 
+    /**
+     * @param array<string> $keys
+     *
+     * @return array<string, \Generated\Shared\Transfer\ConfigurationValueTransfer>
+     */
     public function findConfigurationValuesByKeysAndScope(array $keys, string $scope, ?string $scopeIdentifier = null): array
     {
         if (!$keys) {
             return [];
         }
 
-        $valueQuery = $this->getConfigurationValueQuery()
+        $valueQuery = $this->getFactory()->createSpyConfigurationValueQuery()
             ->filterBySettingKey($keys, Criteria::IN)
             ->filterByScope($scope);
 
@@ -74,9 +78,12 @@ class ConfigurationRepository extends AbstractRepository implements Configuratio
         return $result;
     }
 
+    /**
+     * @return array<string, \Generated\Shared\Transfer\ConfigurationValueTransfer>
+     */
     public function findAllConfigurationValuesByScope(string $scope, ?string $scopeIdentifier = null): array
     {
-        $valueQuery = $this->getConfigurationValueQuery()
+        $valueQuery = $this->getFactory()->createSpyConfigurationValueQuery()
             ->filterByScope($scope);
 
         if ($scopeIdentifier !== null) {
@@ -97,13 +104,5 @@ class ConfigurationRepository extends AbstractRepository implements Configuratio
         }
 
         return $result;
-    }
-
-    public function getConfigurationValueQuery(): SpyConfigurationValueQuery
-    {
-        /** @var \Orm\Zed\Configuration\Persistence\SpyConfigurationValueQuery $configurationValueQuery */
-        $configurationValueQuery = SpyConfigurationValueQuery::create();
-
-        return $configurationValueQuery;
     }
 }

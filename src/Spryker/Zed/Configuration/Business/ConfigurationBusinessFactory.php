@@ -8,6 +8,7 @@
 namespace Spryker\Zed\Configuration\Business;
 
 use Spryker\Service\FileSystem\FileSystemServiceInterface;
+use Spryker\Service\UtilEncoding\UtilEncodingServiceInterface;
 use Spryker\Service\UtilEncryption\UtilEncryptionServiceInterface;
 use Spryker\Service\UtilSanitizeXss\UtilSanitizeXssServiceInterface;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptor;
@@ -22,6 +23,12 @@ use Spryker\Zed\Configuration\Business\Collector\ConfigurationValuesCollector;
 use Spryker\Zed\Configuration\Business\Collector\ConfigurationValuesCollectorInterface;
 use Spryker\Zed\Configuration\Business\Creator\ConfigurationFileUploadCreator;
 use Spryker\Zed\Configuration\Business\Creator\ConfigurationFileUploadCreatorInterface;
+use Spryker\Zed\Configuration\Business\DataImport\ConfigurationValueDataImportStep;
+use Spryker\Zed\Configuration\Business\DataImport\Step\ConfigurationValueScopeIdentifierValidatorStep;
+use Spryker\Zed\Configuration\Business\DataImport\Step\ConfigurationValueScopeValidatorStep;
+use Spryker\Zed\Configuration\Business\DataImport\Step\ConfigurationValueSettingKeyValidatorStep;
+use Spryker\Zed\Configuration\Business\Logger\ConfigurationAuditLogger;
+use Spryker\Zed\Configuration\Business\Logger\ConfigurationAuditLoggerInterface;
 use Spryker\Zed\Configuration\Business\Reader\ConfigurationReader;
 use Spryker\Zed\Configuration\Business\Reader\ConfigurationReaderInterface;
 use Spryker\Zed\Configuration\Business\Resolver\ConfigurationScopeIdentifierResolver;
@@ -32,6 +39,12 @@ use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProvider;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaSettingsMapper;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaSettingsMapperInterface;
+use Spryker\Zed\Configuration\Business\Search\ConfigurationOverrideCollector;
+use Spryker\Zed\Configuration\Business\Search\ConfigurationOverrideCollectorInterface;
+use Spryker\Zed\Configuration\Business\Search\ConfigurationSchemaSearcher;
+use Spryker\Zed\Configuration\Business\Search\ConfigurationSchemaSearcherInterface;
+use Spryker\Zed\Configuration\Business\Search\ConfigurationUsageScanner;
+use Spryker\Zed\Configuration\Business\Search\ConfigurationUsageScannerInterface;
 use Spryker\Zed\Configuration\Business\Storage\ConfigurationStorageWriter;
 use Spryker\Zed\Configuration\Business\Storage\ConfigurationStorageWriterInterface;
 use Spryker\Zed\Configuration\Business\Sync\ConfigurationSchemaLoader;
@@ -47,8 +60,13 @@ use Spryker\Zed\Configuration\Business\Validator\ConfigurationValueValidatorInte
 use Spryker\Zed\Configuration\Business\Writer\ConfigurationValueWriter;
 use Spryker\Zed\Configuration\Business\Writer\ConfigurationValueWriterInterface;
 use Spryker\Zed\Configuration\ConfigurationDependencyProvider;
+use Spryker\Zed\DataImport\Business\DataImportFactoryTrait;
+use Spryker\Zed\DataImport\Business\Model\DataImporterInterface;
+use Spryker\Zed\DataImport\Business\Model\DataImportStep\DataImportStepInterface;
+use Spryker\Zed\DataImport\Business\Model\DataSet\DataSetStepBroker;
 use Spryker\Zed\FileManager\Business\FileManagerFacadeInterface;
 use Spryker\Zed\Kernel\Business\AbstractBusinessFactory;
+use Spryker\Zed\Translator\Business\TranslatorFacadeInterface;
 
 /**
  * @method \Spryker\Zed\Configuration\ConfigurationConfig getConfig()
@@ -57,6 +75,8 @@ use Spryker\Zed\Kernel\Business\AbstractBusinessFactory;
  */
 class ConfigurationBusinessFactory extends AbstractBusinessFactory
 {
+    use DataImportFactoryTrait;
+
     public function createConfigurationSchemaSync(): ConfigurationSchemaSyncInterface
     {
         return new ConfigurationSchemaSync(
@@ -65,12 +85,29 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
             $this->createSchemaParser(),
             $this->createConfigurationSchemaSettingsMapper(),
             $this->getConfig(),
+            $this->createConfigurationUsageScanner(),
+            $this->getUtilEncodingService(),
         );
+    }
+
+    public function createConfigurationUsageScanner(): ConfigurationUsageScannerInterface
+    {
+        return new ConfigurationUsageScanner(
+            $this->getConfig(),
+            $this->createConfigurationOverrideCollector(),
+        );
+    }
+
+    public function createConfigurationOverrideCollector(): ConfigurationOverrideCollectorInterface
+    {
+        return new ConfigurationOverrideCollector();
     }
 
     public function createConfigurationSchemaSettingsMapper(): ConfigurationSchemaSettingsMapperInterface
     {
-        return new ConfigurationSchemaSettingsMapper();
+        return new ConfigurationSchemaSettingsMapper(
+            $this->getUtilEncodingService(),
+        );
     }
 
     public function createConfigurationSchemaLoader(): ConfigurationSchemaLoaderInterface
@@ -113,6 +150,7 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
             $this->createConfigurationValueValidator(),
             $this->createConfigurationValueEncryptor(),
             $this->createConfigurationSchemaProvider(),
+            $this->createConfigurationAuditLogger(),
             $this->getConfigurationValuePreSavePlugins(),
             $this->getConfigurationValuePostSavePlugins(),
             $this->createConfigurationValueSanitizer(),
@@ -130,6 +168,11 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
     public function getUtilSanitizeXssService(): UtilSanitizeXssServiceInterface
     {
         return $this->getProvidedDependency(ConfigurationDependencyProvider::SERVICE_UTIL_SANITIZE_XSS);
+    }
+
+    public function createConfigurationAuditLogger(): ConfigurationAuditLoggerInterface
+    {
+        return new ConfigurationAuditLogger();
     }
 
     public function createConfigurationValueValidator(): ConfigurationValueValidatorInterface
@@ -181,6 +224,50 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
             $this->getRepository(),
             $this->getEntityManager(),
             $this->createConfigurationSchemaProvider(),
+        );
+    }
+
+    public function createConfigurationValueDataImporter(): DataImporterInterface
+    {
+        /** @var \Spryker\Zed\DataImport\Business\Model\DataImporterInterface&\Spryker\Zed\DataImport\Business\Model\DataSet\DataSetStepBrokerAwareInterface $dataImporter */
+        $dataImporter = $this->getCsvDataImporterFromConfig(
+            $this->getConfig()->getConfigurationValueDataImporterDataSourceConfiguration(),
+        );
+
+        $dataSetStepBroker = new DataSetStepBroker();
+        $dataSetStepBroker->addStep($this->createConfigurationValueSettingKeyValidatorStep());
+        $dataSetStepBroker->addStep($this->createConfigurationValueScopeValidatorStep());
+        $dataSetStepBroker->addStep($this->createConfigurationValueScopeIdentifierValidatorStep());
+        $dataSetStepBroker->addStep($this->createConfigurationValueDataImportStep());
+
+        $dataImporter->addDataSetStepBroker($dataSetStepBroker);
+
+        return $dataImporter;
+    }
+
+    public function createConfigurationValueSettingKeyValidatorStep(): DataImportStepInterface
+    {
+        return new ConfigurationValueSettingKeyValidatorStep(
+            $this->createConfigurationSchemaProvider(),
+        );
+    }
+
+    public function createConfigurationValueScopeValidatorStep(): DataImportStepInterface
+    {
+        return new ConfigurationValueScopeValidatorStep(
+            $this->getConfig(),
+        );
+    }
+
+    public function createConfigurationValueScopeIdentifierValidatorStep(): DataImportStepInterface
+    {
+        return new ConfigurationValueScopeIdentifierValidatorStep();
+    }
+
+    public function createConfigurationValueDataImportStep(): DataImportStepInterface
+    {
+        return new ConfigurationValueDataImportStep(
+            $this->createConfigurationValueWriter(),
         );
     }
 
@@ -255,5 +342,23 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
     public function createSchemaMerger(): SchemaMerger
     {
         return new SchemaMerger();
+    }
+
+    public function createConfigurationSchemaSearcher(): ConfigurationSchemaSearcherInterface
+    {
+        return new ConfigurationSchemaSearcher(
+            $this->createConfigurationSchemaProvider(),
+            $this->getTranslatorFacade(),
+        );
+    }
+
+    public function getTranslatorFacade(): TranslatorFacadeInterface
+    {
+        return $this->getProvidedDependency(ConfigurationDependencyProvider::FACADE_TRANSLATOR);
+    }
+
+    public function getUtilEncodingService(): UtilEncodingServiceInterface
+    {
+        return $this->getProvidedDependency(ConfigurationDependencyProvider::SERVICE_UTIL_ENCODING);
     }
 }

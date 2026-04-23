@@ -7,8 +7,10 @@
 
 namespace Spryker\Client\Configuration;
 
+use Spryker\Client\Configuration\Dependency\Facade\ConfigurationFacadeBridge;
+use Spryker\Client\Configuration\Reader\ConfigurationReaderInterface;
+use Spryker\Client\Configuration\Reader\ConfigurationReaderResolver;
 use Spryker\Client\Configuration\Reader\ConfigurationStorageReader;
-use Spryker\Client\Configuration\Reader\ConfigurationStorageReaderInterface;
 use Spryker\Client\Kernel\AbstractFactory;
 use Spryker\Client\Storage\StorageClientInterface;
 use Spryker\Service\Synchronization\SynchronizationServiceInterface;
@@ -17,13 +19,30 @@ use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptor;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptorInterface;
 use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReader;
 use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReaderInterface;
+use Spryker\Zed\Configuration\Business\ConfigurationFacadeInterface;
 
 /**
  * @method \Spryker\Client\Configuration\ConfigurationConfig getConfig()
  */
 class ConfigurationFactory extends AbstractFactory
 {
-    public function createConfigurationStorageReader(): ConfigurationStorageReaderInterface
+    public function createConfigurationReaderResolver(): ConfigurationReaderInterface
+    {
+        return new ConfigurationReaderResolver(
+            $this->createConfigurationStorageReader(),
+            $this->createConfigurationFacadeReader(),
+            $this->getIsConfigurationServiceProvided(),
+        );
+    }
+
+    public function createConfigurationFacadeReader(): ConfigurationReaderInterface
+    {
+        return new ConfigurationFacadeBridge(
+            $this->getConfigurationService(),
+        );
+    }
+
+    public function createConfigurationStorageReader(): ConfigurationReaderInterface
     {
         return new ConfigurationStorageReader(
             $this->getConfig()->getSharedModuleConfig(),
@@ -33,6 +52,16 @@ class ConfigurationFactory extends AbstractFactory
             $this->getSynchronizationService(),
             $this->getConfigurationValueRequestExpanderPlugins(),
         );
+    }
+
+    public function getIsConfigurationServiceProvided(): bool
+    {
+        return $this->getProvidedDependency(ConfigurationDependencyProvider::IS_CONFIGURATION_SERVICE_PROVIDED);
+    }
+
+    public function getConfigurationService(): ?ConfigurationFacadeInterface
+    {
+        return $this->getProvidedDependency(ConfigurationDependencyProvider::SERVICE_CONFIGURATION);
     }
 
     /**

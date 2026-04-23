@@ -1,0 +1,3 @@
+setting_key,scope,scope_identifier,value
+catalog:general:display:items_per_page,global,,24
+catalog:general:display:items_per_page,store,DE,48

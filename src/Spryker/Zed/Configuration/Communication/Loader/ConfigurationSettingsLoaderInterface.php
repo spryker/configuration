@@ -10,13 +10,9 @@ namespace Spryker\Zed\Configuration\Communication\Loader;
 interface ConfigurationSettingsLoaderInterface
 {
     /**
-     * Load all settings for a specific tab, organized by groups
-     *
-     * @param string $tabKey
-     * @param string $scope
-     * @param string|null $scopeIdentifier
+     * Load all settings for a specific feature tab, organized by groups.
      *
      * @return array<array<string, mixed>>
      */
-    public function loadSettingsForTab(string $tabKey, string $scope, ?string $scopeIdentifier = null): array;
+    public function loadSettingsForTab(string $featureKey, string $tabKey, string $scope, ?string $scopeIdentifier = null): array;
 }

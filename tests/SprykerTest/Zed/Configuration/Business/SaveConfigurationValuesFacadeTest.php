@@ -118,7 +118,7 @@ class SaveConfigurationValuesFacadeTest extends Unit
         $this->assertGreaterThan(0, $result->getErrors()->count());
     }
 
-    public function testSaveConfigurationValuesSavesValidAndRejectsInvalidInBatch(): void
+    public function testSaveConfigurationValuesRejectsEntireBatchWhenAnyValueIsInvalid(): void
     {
         // Arrange
         $facade = $this->createFacade();
@@ -140,10 +140,18 @@ class SaveConfigurationValuesFacadeTest extends Unit
         // Act
         $result = $facade->saveConfigurationValues($requestTransfer);
 
-        // Assert
+        // Assert transactional semantics: any invalid value aborts the whole batch.
         $this->assertFalse($result->getIsSuccess());
-        $this->assertSame(1, $result->getSavedCount());
+        $this->assertSame(0, $result->getSavedCount());
         $this->assertCount(1, $result->getErrors());
+        $this->assertSame('catalog:email:notifications:sender_email', $result->getErrors()[0]->getSettingKey());
+
+        $this->assertNull(
+            SpyConfigurationValueQuery::create()
+                ->filterBySettingKey('catalog:general:display:items_per_page')
+                ->filterByScope('global')
+                ->findOne(),
+        );
     }
 
     public function testSaveConfigurationValuesProcessesDeletions(): void

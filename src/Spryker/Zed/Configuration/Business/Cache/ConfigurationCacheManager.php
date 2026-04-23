@@ -7,12 +7,10 @@
 
 namespace Spryker\Zed\Configuration\Business\Cache;
 
+use Spryker\Shared\Configuration\ConfigurationConstants;
+
 class ConfigurationCacheManager implements ConfigurationCacheManagerInterface
 {
-    protected const CACHE_KEY_PREFIX = 'config';
-
-    protected const CACHE_KEY_SEPARATOR = ':';
-
     /**
      * @var array<string, string>
      */
@@ -46,12 +44,12 @@ class ConfigurationCacheManager implements ConfigurationCacheManagerInterface
 
     protected function buildCacheKey(string $key, string $scope, ?string $scopeIdentifier): string
     {
-        $parts = [static::CACHE_KEY_PREFIX, $key, $scope];
+        $parts = [ConfigurationConstants::CACHE_KEY_PREFIX, $key, $scope];
 
         if ($scopeIdentifier !== null) {
             $parts[] = $scopeIdentifier;
         }
 
-        return implode(static::CACHE_KEY_SEPARATOR, $parts);
+        return implode(ConfigurationConstants::STORAGE_KEY_SEPARATOR, $parts);
     }
 }

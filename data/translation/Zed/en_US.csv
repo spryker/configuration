@@ -36,3 +36,9 @@ Cancel,Cancel
 "The uploaded file type is not allowed.","The uploaded file type is not allowed."
 "Invalid setting key.","Invalid setting key."
 "An error occurred while saving the file.","An error occurred while saving the file."
+configuration.status.beta.label,Beta
+configuration.status.beta.tooltip,Beta
+configuration.status.early_access.label,"Early Access"
+configuration.status.early_access.tooltip,"Early Access"
+configuration.override.notice,"Overridden by project-level config: %projectClass%::%projectMethod%"
+configuration.configure,Configure

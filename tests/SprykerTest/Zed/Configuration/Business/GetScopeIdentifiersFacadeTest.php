@@ -8,6 +8,7 @@
 namespace SprykerTest\Zed\Configuration\Business;
 
 use Codeception\Test\Unit;
+use Spryker\Zed\Configuration\Business\ConfigurationFacadeInterface;
 use Spryker\Zed\Configuration\ConfigurationDependencyProvider;
 use Spryker\Zed\ConfigurationExtension\Dependency\Plugin\ConfigurationScopeIdentifierProviderPluginInterface;
 use SprykerTest\Zed\Configuration\ConfigurationBusinessTester;
@@ -32,8 +33,10 @@ class GetScopeIdentifiersFacadeTest extends Unit
         // Arrange
         $this->tester->setDependency(ConfigurationDependencyProvider::PLUGINS_SCOPE_IDENTIFIER_PROVIDER, []);
 
+        $facade = $this->createFacade();
+
         // Act
-        $result = $this->tester->getFacade()->getScopeIdentifiers('store');
+        $result = $facade->getScopeIdentifiers('store');
 
         // Assert
         $this->assertSame([], $result);
@@ -48,8 +51,10 @@ class GetScopeIdentifiersFacadeTest extends Unit
 
         $this->tester->setDependency(ConfigurationDependencyProvider::PLUGINS_SCOPE_IDENTIFIER_PROVIDER, [$pluginMock]);
 
+        $facade = $this->createFacade();
+
         // Act
-        $result = $this->tester->getFacade()->getScopeIdentifiers('store');
+        $result = $facade->getScopeIdentifiers('store');
 
         // Assert
         $this->assertSame(['DE', 'AT', 'US'], $result);
@@ -65,8 +70,10 @@ class GetScopeIdentifiersFacadeTest extends Unit
 
         $this->tester->setDependency(ConfigurationDependencyProvider::PLUGINS_SCOPE_IDENTIFIER_PROVIDER, [$pluginMock]);
 
+        $facade = $this->createFacade();
+
         // Act
-        $result = $this->tester->getFacade()->getScopeIdentifiers('locale');
+        $result = $facade->getScopeIdentifiers('locale');
 
         // Assert
         $this->assertSame([], $result);
@@ -85,12 +92,19 @@ class GetScopeIdentifiersFacadeTest extends Unit
 
         $this->tester->setDependency(ConfigurationDependencyProvider::PLUGINS_SCOPE_IDENTIFIER_PROVIDER, [$storePlugin, $localePlugin]);
 
+        $facade = $this->createFacade();
+
         // Act
-        $storeResult = $this->tester->getFacade()->getScopeIdentifiers('store');
-        $localeResult = $this->tester->getFacade()->getScopeIdentifiers('locale');
+        $storeResult = $facade->getScopeIdentifiers('store');
+        $localeResult = $facade->getScopeIdentifiers('locale');
 
         // Assert
         $this->assertSame(['DE', 'AT'], $storeResult);
         $this->assertSame(['de_DE', 'en_US'], $localeResult);
+    }
+
+    protected function createFacade(): ConfigurationFacadeInterface
+    {
+        return $this->tester->getFacade();
     }
 }

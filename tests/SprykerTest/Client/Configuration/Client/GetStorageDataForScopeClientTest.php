@@ -10,8 +10,8 @@ namespace SprykerTest\Client\Configuration\Client;
 use Codeception\Test\Unit;
 use Generated\Shared\Transfer\SynchronizationDataTransfer;
 use ReflectionProperty;
+use Spryker\Client\Configuration\Reader\ConfigurationReaderInterface;
 use Spryker\Client\Configuration\Reader\ConfigurationStorageReader;
-use Spryker\Client\Configuration\Reader\ConfigurationStorageReaderInterface;
 use Spryker\Client\Storage\StorageClientInterface;
 use Spryker\Service\Synchronization\Dependency\Plugin\SynchronizationKeyGeneratorPluginInterface;
 use Spryker\Service\Synchronization\SynchronizationServiceInterface;
@@ -53,6 +53,7 @@ class GetStorageDataForScopeClientTest extends Unit
     protected function _before(): void
     {
         $this->clearStaticCaches();
+        $this->tester->mockFacadeReaderPathAsUnavailable($this->createMock(ConfigurationReaderInterface::class));
     }
 
     public function testGetStorageDataForScopeReturnsDataForGlobalScope(): void
@@ -182,7 +183,7 @@ class GetStorageDataForScopeClientTest extends Unit
         );
     }
 
-    protected function createStorageReaderWithStorageClient(StorageClientInterface $storageClientMock): ConfigurationStorageReaderInterface
+    protected function createStorageReaderWithStorageClient(StorageClientInterface $storageClientMock): ConfigurationReaderInterface
     {
         $sharedConfigMock = $this->createMock(SprykerConfigurationConfig::class);
         $sharedConfigMock->method('getScopeHierarchy')->willReturn([

@@ -1,0 +1,54 @@
+{% block content %}
+    <div class="scope-selector js-scope-selector">
+        {% block scopeSelectorField %}
+            {% set nonGlobalScopes = availableScopes | filter(s => s != 'global') %}
+            {% if nonGlobalScopes | length == 1 %}
+                {# Single non-global scope: combine scope type + identifier into one selector #}
+                {% set singleScope = nonGlobalScopes | first %}
+                {% set singleScopeIdentifiers = allScopeIdentifiers[singleScope] ?? [] %}
+                <div>
+                    <select id="scope-combined" class="form-control js-scope-combined" data-qa="scope-combined">
+                        <option value="global:" {% if currentScope == 'global' %}selected{% endif %}>
+                            {{ ('Default (All ' ~ singleScope|capitalize ~ 's)') | trans }}
+                        </option>
+                        {% for identifier in singleScopeIdentifiers %}
+                            <option value="{{ singleScope }}:{{ identifier }}" {% if currentScope == singleScope and identifier == currentScopeIdentifier %}selected{% endif %}>
+                                {{ identifier }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% else %}
+                {# Multiple non-global scopes: keep separate scope type + identifier selectors #}
+                <div>
+                    <label for="scope-type">{{ 'Scope:' | trans }}</label>
+                    <select id="scope-type" class="form-control js-scope-type" data-qa="scope-type">
+                        {% for scope in availableScopes %}
+                            <option value="{{ scope }}" {% if scope == currentScope %}selected{% endif %}>
+                                {{ scope|capitalize }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if scopeIdentifiers is not empty %}
+                    <div>
+                        <select id="scope-identifier" class="form-control js-scope-identifier" data-qa="scope-identifier">
+                            {% for identifier in scopeIdentifiers %}
+                                <option value="{{ identifier }}" {% if identifier == currentScopeIdentifier %}selected{% endif %}>
+                                    {{ identifier }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endblock %}
+
+        {% block configSearchField %}
+            <div class="config-search">
+                <input type="text" class="form-control js-config-search" placeholder="{{ 'Search settings...' | trans }}" data-qa="config-search">
+            </div>
+        {% endblock %}
+    </div>
+{% endblock %}

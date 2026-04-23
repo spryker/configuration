@@ -36,3 +36,9 @@ Cancel,Abbrechen
 "The uploaded file type is not allowed.","Der hochgeladene Dateityp ist nicht erlaubt."
 "Invalid setting key.","Ungültiger Einstellungsschlüssel."
 "An error occurred while saving the file.","Beim Speichern der Datei ist ein Fehler aufgetreten."
+configuration.status.beta.label,Beta
+configuration.status.beta.tooltip,Beta
+configuration.status.early_access.label,"Frühzeitiger Zugang"
+configuration.status.early_access.tooltip,"Frühzeitiger Zugang"
+configuration.override.notice,"Überschrieben durch Projekt-Konfiguration: %projectClass%::%projectMethod%"
+configuration.configure,Konfigurieren

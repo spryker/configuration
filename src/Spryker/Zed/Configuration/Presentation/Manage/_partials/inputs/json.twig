@@ -1,0 +1,26 @@
+{% set currentValue = setting.has_custom_value ? setting.current_value : setting.inherited_value %}
+
+<div class="json-editor" data-json-editor>
+    <div class="json-editor__toolbar">
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-json-format title="{{ 'Format JSON' | trans }}">
+            <span class="material-symbols-outlined">code</span> {{ 'Format' | trans }}
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" data-json-collapse title="{{ 'Collapse JSON' | trans }}">
+            <span class="material-symbols-outlined">compress</span> {{ 'Minify' | trans }}
+        </button>
+        <span class="json-editor__status" data-json-status></span>
+    </div>
+
+    <textarea id="setting-{{ setting.key }}"
+              class="config-input json-editor__input"
+              data-original-value="{{ setting.current_value }}"
+              data-has-custom-value="{{ setting.has_custom_value ? '1' : '0' }}"
+              data-json-source
+              style="display:none"
+              {% if isEditable is defined and not isEditable %}disabled{% endif %}>{{ currentValue }}</textarea>
+
+    <div class="json-editor__code"
+         data-json-code
+         contenteditable="{{ (isEditable is not defined or isEditable) ? 'true' : 'false' }}"
+         spellcheck="false">{{ currentValue }}</div>
+</div>

@@ -4,21 +4,40 @@ features:
       name: System Configuration
       description: Core system settings
       enabled: true
+      status: early_access
       tabs:
           - key: general
             name: General
             icon: settings
             description: General system settings
             enabled: true
+            status: early_access
             groups:
                 - key: basic
                   name: Basic Settings
                   description: Basic system configuration
+                  status: early_access
                   scopes:
                       - global
                       - store
                   enabled: true
                   settings:
+                      - key: disabled_setting_example
+                        name: Disabled Setting Example
+                        description: This setting is disabled and hidden from the backoffice UI
+                        placeholder: Not visible
+                        help_text: This setting demonstrates the enabled flag behavior
+                        type: string
+                        default_value: ''
+                        status: beta
+                        scopes:
+                            - global
+                            - store
+                        enabled: false
+                        secret: false
+                        storefront: false
+                        constraints: []
+
                       - key: site_name
                         name: Site Name
                         description: The name of the site displayed in the storefront header
@@ -26,6 +45,7 @@ features:
                         help_text: This name will appear in the storefront header and page titles
                         type: string
                         default_value: My Store
+                        status: early_access
                         scopes:
                             - global
                             - store
@@ -181,6 +201,18 @@ features:
                       - store
                   enabled: true
                   settings:
+                      - key: stripe_enabled
+                        name: Stripe is enabled
+                        description: When enabled, stock availability information is shown to customers on product pages and in the cart.
+                        type: boolean
+                        default_value: 'false'
+                        enabled: true
+                        secret: false
+                        storefront: true
+                        scopes:
+                            - global
+                            - store
+
                       - key: stripe_api_key
                         name: Stripe API Key
                         description: Stripe secret API key for payment processing
@@ -195,6 +227,12 @@ features:
                         constraints:
                             - type: required
                               message: Stripe API key is required when Stripe is enabled
+                        dependencies:
+                            - when:
+                                  any:
+                                      - setting: system:integrations:payment:stripe_enabled
+                                        operator: equals
+                                        value: 'true'
 
                       - key: stripe_webhook_secret
                         name: Stripe Webhook Secret
@@ -207,11 +245,17 @@ features:
                         enabled: true
                         secret: true
                         storefront: false
+                        dependencies:
+                            - when:
+                                  any:
+                                      - setting: system:integrations:payment:stripe_enabled
+                                        operator: equals
+                                        value: 'true'
 
                       - key: payment_methods
                         name: Enabled Payment Methods
                         description: List of enabled payment methods
-                        type: text
+                        type: json
                         default_value: ['credit_card', 'paypal']
                         scopes:
                             - global

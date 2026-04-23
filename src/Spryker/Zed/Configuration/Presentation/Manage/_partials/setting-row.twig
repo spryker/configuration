@@ -1,75 +1,95 @@
-<div class="setting-row {% if setting.type == 'boolean' %}boolean-row{% else %}non-boolean-row{% endif %}"
+<div class="setting-row {% if setting.type == 'boolean' %}boolean-row{% else %}non-boolean-row{% endif %}"{% if setting.is_overridden %} data-overridden="true"{% endif %}
      data-setting-key="{{ setting.key }}"
-     data-feature-key="{{ setting.feature_key }}"
-     data-full-key="{{ setting.key }}"
      data-inherited-value="{{ setting.inherited_value }}"
      data-default-value="{{ setting.default_value }}"
      data-dependencies="{{ setting.dependencies|default([])|json_encode|e('html_attr') }}">
     {# Label & Description (always first) #}
-    <div class="setting-label">
-        <label for="setting-{{ setting.key }}">
+    <div class="setting-row__item">
+        <div class="setting-row__item-header" for="setting-{{ setting.key }}">
             {{ setting.name | trans }}
+            {% include '@Configuration/Manage/_partials/status-badge.twig' with { status: setting.status } only %}
+            {% set overridesDefault = setting.has_custom_value and setting.current_value is not null and setting.current_value != setting.default_value %}
             {% if setting.default_value is not null %}
-                <span class="overrides-default-badge" style="display: {% if setting.has_custom_value %}inline{% else %}none{% endif %};">{{ 'Overrides Default' | trans }}</span>
+                <span class="badge badge-soft-secondary js-overrides-default-badge" style="display: {% if overridesDefault %}inline{% else %}none{% endif %};">{{ 'Overrides Default' | trans }}</span>
             {% endif %}
             {% if setting.pending_sync %}
-                <span class="pending-sync-badge">{{ 'Waiting for synchronisation' | trans }}</span>
+                <span class="badge badge-soft-warning">{{ 'Waiting for synchronisation' | trans }}</span>
             {% endif %}
-        </label>
+
+            {# Use Default Link — visible whenever stored value differs from default #}
+            {% if (isEditable is not defined or isEditable) and not setting.is_overridden %}
+                {% if setting.default_value is not null %}
+                    <a href="javascript:void(0)"
+                        class="use-default-link"
+                        title="{{ 'Use Default' | trans }}"
+                        data-setting-key="{{ setting.key }}"
+                        style="display: {% if overridesDefault %}inline-flex{% else %}none{% endif %};">
+                        <span class="material-symbols-outlined">history</span>
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+
         {% if setting.description %}
-            <div class="setting-description">
+            <div class="setting-row__item-description">
                 {{ setting.description | trans }}
             </div>
         {% endif %}
+
         {% if setting.note %}
-            <div class="setting-note">
+            <div class="setting-row__item-note">
                 {{ setting.note | trans }}
             </div>
         {% endif %}
 
-        {# Use Default Link — visible whenever value differs from default #}
-        {% if isEditable is not defined or isEditable %}
-            <div class="use-default-container">
-                {% if setting.default_value is not null %}
-                    <a href="javascript:void(0)"
-                       class="use-default-link"
-                       data-setting-key="{{ setting.key }}"
-                       style="display: {% if setting.has_custom_value %}inline-flex{% else %}none{% endif %};">
-                        <i class="fa fa-undo"></i>
-                        {{ 'Use Default' | trans }}
-                    </a>
-                {% endif %}
-            </div>
+        {% if setting.is_overridden %}
+            {% for override in setting.override_info %}
+                <span class="alert alert-light text-bg-light mt-2">
+                    <span class="material-symbols-outlined">lock</span>
+                    <span class="text-wrap">
+                        {{ 'configuration.override.notice' | trans({'%projectClass%': override.projectClass, '%projectMethod%': override.projectMethod}) }}
+                    </span>
+                </span>
+            {% endfor %}
         {% endif %}
     </div>
 
     {# Input Field (boolean on right, others below) #}
-    <div class="setting-input">
+    <div>
         {% if setting.template %}
-            {% include setting.template %}
+            {% set inputTemplate = setting.template %}
         {% elseif setting.type == 'boolean' %}
-            {% include '@Configuration/Manage/_partials/inputs/boolean.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/boolean.twig' %}
         {% elseif setting.type == 'select' %}
-            {% include '@Configuration/Manage/_partials/inputs/select.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/select.twig' %}
         {% elseif setting.type == 'multiselect' %}
-            {% include '@Configuration/Manage/_partials/inputs/multiselect.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/multiselect.twig' %}
         {% elseif setting.type == 'radio' %}
-            {% include '@Configuration/Manage/_partials/inputs/radio.twig' %}
-        {% elseif setting.type == 'text' or setting.type == 'json' %}
-            {% include '@Configuration/Manage/_partials/inputs/textarea.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/radio.twig' %}
+        {% elseif setting.type == 'text' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/textarea.twig' %}
+        {% elseif setting.type == 'json' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/json.twig' %}
         {% elseif setting.type == 'integer' %}
-            {% include '@Configuration/Manage/_partials/inputs/integer.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/integer.twig' %}
+        {% elseif setting.type == 'float' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/float.twig' %}
         {% elseif setting.type == 'color' %}
-            {% include '@Configuration/Manage/_partials/inputs/color.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/color.twig' %}
         {% elseif setting.type == 'file' %}
-            {% include '@Configuration/Manage/_partials/inputs/file.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/file.twig' %}
         {% else %}
-            {% include '@Configuration/Manage/_partials/inputs/text.twig' %}
+            {% set inputTemplate = '@Configuration/Manage/_partials/inputs/text.twig' %}
         {% endif %}
 
+        {% include inputTemplate with {setting: setting, isEditable: ((isEditable is not defined or isEditable) and not setting.is_overridden), fileUploadForms: fileUploadForms} only %}
+
+        <span class="invalid-feedback"></span>
+
         {# Help Text - Displayed below input #}
+
         {% if setting.help_text %}
-            <small class="help-text">{{ setting.help_text | trans }}</small>
+            <small class="form-text text-muted">{{ setting.help_text | trans }}</small>
         {% endif %}
     </div>
 </div>

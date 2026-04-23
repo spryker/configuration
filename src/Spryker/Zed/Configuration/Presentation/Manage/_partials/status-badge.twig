@@ -1,0 +1,6 @@
+{% if status %}
+    <span class="badge badge--{{ status | replace({'_': '-'}) }}"
+          title="{{ ('configuration.status.' ~ status ~ '.tooltip') | trans }}">
+        {{ ('configuration.status.' ~ status ~ '.label') | trans }}
+    </span>
+{% endif %}

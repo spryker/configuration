@@ -12,7 +12,7 @@ use Generated\Shared\Transfer\ConfigurationSettingValuesCriteriaTransfer;
 use Orm\Zed\Configuration\Persistence\SpyConfigurationValue;
 use Spryker\Service\UtilEncryption\UtilEncryptionServiceInterface;
 use Spryker\Zed\Configuration\Business\ConfigurationBusinessFactory;
-use Spryker\Zed\Configuration\Business\ConfigurationFacade;
+use Spryker\Zed\Configuration\Business\ConfigurationFacadeInterface;
 use Spryker\Zed\Configuration\ConfigurationConfig;
 use Spryker\Zed\Configuration\ConfigurationDependencyProvider;
 use SprykerTest\Zed\Configuration\ConfigurationBusinessTester;
@@ -91,7 +91,7 @@ class GetConfigurationSettingValuesFacadeTest extends Unit
         $this->assertEmpty($result->getDirectValues());
     }
 
-    protected function createFacade(): ConfigurationFacade
+    protected function createFacade(): ConfigurationFacadeInterface
     {
         $configMock = $this->createMock(ConfigurationConfig::class);
         $configMock->method('getScopeHierarchy')->willReturn([

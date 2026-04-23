@@ -11,6 +11,7 @@ use Generated\Shared\Transfer\ConfigurationSettingTransfer;
 use Generated\Shared\Transfer\ConfigurationValueRequestTransfer;
 use Spryker\Shared\Configuration\ConfigurationConfig;
 use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptorInterface;
 use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReaderInterface;
 
@@ -111,12 +112,6 @@ abstract class AbstractConfigurationValueResolver implements ConfigurationValueR
     /**
      * Fetches the raw stored value for the given key, scope, and optional scope identifier.
      * Returns null when no value exists at this scope level.
-     *
-     * @param string $key
-     * @param string $scope
-     * @param string|null $scopeIdentifier
-     *
-     * @return string|null
      */
     abstract protected function fetchRawValue(string $key, string $scope, ?string $scopeIdentifier = null): ?string;
 
@@ -134,21 +129,17 @@ abstract class AbstractConfigurationValueResolver implements ConfigurationValueR
 
         return (new ConfigurationSettingTransfer())
             ->setKey($key)
-            ->setType($entry[ConfigurationConstants::SCHEMA_KEY_TYPE])
-            ->setDefaultValue($entry[ConfigurationConstants::SCHEMA_KEY_DEFAULT_VALUE] ?? null)
-            ->setIsSecret($entry[ConfigurationConstants::SCHEMA_KEY_SECRET] ?? false)
-            ->setIsStorefront($entry[ConfigurationConstants::SCHEMA_KEY_STOREFRONT] ?? false)
-            ->setScopes($entry[ConfigurationConstants::SCHEMA_KEY_SCOPES] ?? [])
-            ->setConstraints($entry[ConfigurationConstants::SCHEMA_KEY_CONSTRAINTS] ?? [])
-            ->setSanitizeXss($entry[ConfigurationConstants::SCHEMA_KEY_SANITIZE_XSS] ?? []);
+            ->setType($entry[ConfigurationSchemaConstants::SCHEMA_KEY_TYPE])
+            ->setDefaultValue($entry[ConfigurationSchemaConstants::SCHEMA_KEY_DEFAULT_VALUE] ?? null)
+            ->setIsSecret($entry[ConfigurationSchemaConstants::SCHEMA_KEY_SECRET] ?? false)
+            ->setIsStorefront($entry[ConfigurationSchemaConstants::SCHEMA_KEY_STOREFRONT] ?? false)
+            ->setScopes($entry[ConfigurationSchemaConstants::SCHEMA_KEY_SCOPES] ?? [])
+            ->setConstraints($entry[ConfigurationSchemaConstants::SCHEMA_KEY_CONSTRAINTS] ?? [])
+            ->setSanitizeXss($entry[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS] ?? []);
     }
 
     /**
-     * @param string $key
      * @param array<string, string|null> $scopeContextMapping
-     * @param string $scope
-     *
-     * @return string|null
      */
     protected function findValueWithHierarchy(string $key, array $scopeContextMapping, string $scope): ?string
     {
@@ -175,8 +166,6 @@ abstract class AbstractConfigurationValueResolver implements ConfigurationValueR
 
     /**
      * @param array<string, string|null> $scopeContext
-     *
-     * @return string
      */
     protected function findHighestScope(array $scopeContext): string
     {
@@ -227,7 +216,7 @@ abstract class AbstractConfigurationValueResolver implements ConfigurationValueR
 
     protected function formatValue(mixed $value, ConfigurationSettingTransfer $settingTransfer): mixed
     {
-        if ($settingTransfer->getType() === ConfigurationConstants::VALUE_TYPE_BOOLEAN && $value === ConfigurationConstants::BOOLEAN_STRING_FALSE) {
+        if ($settingTransfer->getType() === ConfigurationSchemaConstants::VALUE_TYPE_BOOLEAN && $value === ConfigurationSchemaConstants::BOOLEAN_STRING_FALSE) {
             return false;
         }
 

@@ -15,6 +15,8 @@ use Generated\Shared\Transfer\ConfigurationSyncResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueRequestTransfer;
+use Generated\Shared\Transfer\DataImporterConfigurationTransfer;
+use Generated\Shared\Transfer\DataImporterReportTransfer;
 
 interface ConfigurationFacadeInterface
 {
@@ -30,10 +32,6 @@ interface ConfigurationFacadeInterface
      * - Returns `null` when the setting key is not found in the schema.
      *
      * @api
-     *
-     * @param \Generated\Shared\Transfer\ConfigurationValueRequestTransfer $configurationValueRequestTransfer
-     *
-     * @return mixed
      */
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed;
 
@@ -65,8 +63,6 @@ interface ConfigurationFacadeInterface
      * - Returns `ConfigurationSyncResponseTransfer` with `isSuccess`, `processedCount`, and `errorMessages`.
      *
      * @api
-     *
-     * @return \Generated\Shared\Transfer\ConfigurationSyncResponseTransfer
      */
     public function syncConfigurationSchemas(): ConfigurationSyncResponseTransfer;
 
@@ -95,10 +91,6 @@ interface ConfigurationFacadeInterface
      * - Returns `ConfigurationValueCollectionResponseTransfer` with `isSuccess`, `savedCount`, and per-key `ConfigurationErrorTransfer` errors.
      *
      * @api
-     *
-     * @param \Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer $requestTransfer
-     *
-     * @return \Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer
      */
     public function saveConfigurationValues(
         ConfigurationValueCollectionRequestTransfer $requestTransfer,
@@ -125,10 +117,6 @@ interface ConfigurationFacadeInterface
      * - Returns `ConfigurationSettingValueCollectionTransfer` with `directValues` and `inheritedValues` maps, both keyed by setting key.
      *
      * @api
-     *
-     * @param \Generated\Shared\Transfer\ConfigurationSettingValuesCriteriaTransfer $criteria
-     *
-     * @return \Generated\Shared\Transfer\ConfigurationSettingValueCollectionTransfer
      */
     public function getConfigurationSettingValues(ConfigurationSettingValuesCriteriaTransfer $criteria): ConfigurationSettingValueCollectionTransfer;
 
@@ -140,11 +128,41 @@ interface ConfigurationFacadeInterface
      *
      * @api
      *
-     * @param string $scope
-     *
      * @return array<string>
      */
     public function getScopeIdentifiers(string $scope): array;
+
+    /**
+     * Specification:
+     * - Reads configuration values from CSV data source defined in `ConfigurationConfig::getConfigurationValueDataImporterConfiguration()`.
+     * - Skips rows where the setting is marked as secret in the schema, logging a warning.
+     * - Validates each row's setting_key exists in the merged configuration schema.
+     * - Validates each row's scope is in `ConfigurationConfig::getAvailableScopes()`.
+     * - Delegates persistence to `ConfigurationValueWriter::saveConfigurationValues()` which handles validation, audit logging, P&S events, and cache invalidation.
+     * - Returns `DataImporterReportTransfer` with import statistics.
+     *
+     * @api
+     */
+    public function importConfigurationValues(
+        ?DataImporterConfigurationTransfer $dataImporterConfigurationTransfer = null,
+    ): DataImporterReportTransfer;
+
+    /**
+     * Specification:
+     * - Searches the merged configuration schema for features, tabs, groups, and settings matching the given term.
+     * - Translates names and descriptions to the current Backoffice locale before matching.
+     * - Filters settings by scope availability before matching.
+     * - Matches against translated name and description at feature, tab, and group levels.
+     * - Matches against translated name, description, and raw key at setting level.
+     * - A tab is included if it or any of its scope-available descendant groups/settings match.
+     * - A feature is included if it or any of its descendant tabs match.
+     * - Returns an associative array keyed by feature key, with values being arrays of matching tab keys.
+     *
+     * @api
+     *
+     * @return array<string, array<string>>
+     */
+    public function searchConfigurationSchema(string $term, string $scope): array;
 
     /**
      * Specification:

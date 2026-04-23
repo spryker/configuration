@@ -36,12 +36,15 @@ class ConfigurationDependencyProvider extends AbstractBundleDependencyProvider
 
     public const string SERVICE_UTIL_SANITIZE_XSS = 'SERVICE_UTIL_SANITIZE_XSS';
 
+    public const string SERVICE_UTIL_ENCODING = 'SERVICE_UTIL_ENCODING';
+
     public function provideCommunicationLayerDependencies(Container $container): Container
     {
         $container = parent::provideCommunicationLayerDependencies($container);
         $container = $this->addConfigurationClient($container);
         $container = $this->addAclFacade($container);
         $container = $this->addTranslatorFacade($container);
+        $container = $this->addUtilEncodingService($container);
 
         return $container;
     }
@@ -57,6 +60,8 @@ class ConfigurationDependencyProvider extends AbstractBundleDependencyProvider
         $container = $this->addFileManagerFacade($container);
         $container = $this->addFlysystemService($container);
         $container = $this->addUtilSanitizeXssService($container);
+        $container = $this->addTranslatorFacade($container);
+        $container = $this->addUtilEncodingService($container);
 
         return $container;
     }
@@ -203,6 +208,15 @@ class ConfigurationDependencyProvider extends AbstractBundleDependencyProvider
     {
         $container->set(static::SERVICE_UTIL_SANITIZE_XSS, function (Container $container) {
             return $container->getLocator()->utilSanitizeXss()->service();
+        });
+
+        return $container;
+    }
+
+    protected function addUtilEncodingService(Container $container): Container
+    {
+        $container->set(static::SERVICE_UTIL_ENCODING, function (Container $container) {
+            return $container->getLocator()->utilEncoding()->service();
         });
 
         return $container;

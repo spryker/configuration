@@ -23,7 +23,7 @@ class ConfigurationClient extends AbstractClient implements ConfigurationClientI
     public function getConfigurationValue(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): mixed
     {
         return $this->getFactory()
-            ->createConfigurationStorageReader()
+            ->createConfigurationReaderResolver()
             ->getConfigurationValue($configurationValueRequestTransfer);
     }
 
@@ -35,7 +35,7 @@ class ConfigurationClient extends AbstractClient implements ConfigurationClientI
     public function getConfigurationValues(ConfigurationValueRequestTransfer $configurationValueRequestTransfer): array
     {
         return $this->getFactory()
-            ->createConfigurationStorageReader()
+            ->createConfigurationReaderResolver()
             ->getConfigurationValues($configurationValueRequestTransfer);
     }
 
@@ -47,7 +47,7 @@ class ConfigurationClient extends AbstractClient implements ConfigurationClientI
     public function getStorageDataForScope(string $scope, ?string $scopeIdentifier = null): array
     {
         return $this->getFactory()
-            ->createConfigurationStorageReader()
+            ->createConfigurationReaderResolver()
             ->getStorageDataForScope($scope, $scopeIdentifier);
     }
 }

@@ -11,7 +11,7 @@ use Codeception\Test\Unit;
 use Spryker\Service\UtilEncryption\UtilEncryptionServiceInterface;
 use Spryker\Shared\Configuration\ConfigurationConfig as SprykerConfigurationConfig;
 use Spryker\Zed\Configuration\Business\ConfigurationBusinessFactory;
-use Spryker\Zed\Configuration\Business\ConfigurationFacade;
+use Spryker\Zed\Configuration\Business\ConfigurationFacadeInterface;
 use Spryker\Zed\Configuration\ConfigurationConfig;
 use Spryker\Zed\Configuration\ConfigurationDependencyProvider;
 use SprykerTest\Zed\Configuration\ConfigurationBusinessTester;
@@ -104,7 +104,7 @@ class GetAllConfigurationSettingsFacadeTest extends Unit
         $this->assertSame([], $result);
     }
 
-    protected function createFacadeWithTestSchema(): ConfigurationFacade
+    protected function createFacadeWithTestSchema(): ConfigurationFacadeInterface
     {
         $schemaFilePath = __DIR__ . '/../_data/test-schema.php';
 

@@ -15,6 +15,8 @@ use Generated\Shared\Transfer\ConfigurationSyncResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueRequestTransfer;
+use Generated\Shared\Transfer\DataImporterConfigurationTransfer;
+use Generated\Shared\Transfer\DataImporterReportTransfer;
 use Spryker\Zed\Kernel\Business\AbstractFacade;
 
 /**
@@ -119,6 +121,31 @@ class ConfigurationFacade extends AbstractFacade implements ConfigurationFacadeI
         return $this->getFactory()
             ->createConfigurationScopeIdentifierResolver()
             ->getIdentifiersForScope($scope);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @api
+     */
+    public function importConfigurationValues(
+        ?DataImporterConfigurationTransfer $dataImporterConfigurationTransfer = null,
+    ): DataImporterReportTransfer {
+        return $this->getFactory()
+            ->createConfigurationValueDataImporter()
+            ->import($dataImporterConfigurationTransfer);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @api
+     */
+    public function searchConfigurationSchema(string $term, string $scope): array
+    {
+        return $this->getFactory()
+            ->createConfigurationSchemaSearcher()
+            ->search($term, $scope);
     }
 
     /**

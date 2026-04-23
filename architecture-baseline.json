@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "fileName": "src/Spryker/Client/Configuration/ConfigurationFactory.php",
+        "description": "Access: Method Spryker\\Client\\Configuration\\ConfigurationFactory::getConfigurationService() accesses Spryker\\Zed\\Configuration\\Business\\ConfigurationFacadeInterface which violates rule \"No call from Client to Zed\"",
+        "rule": "LayerAccessRule",
+        "ruleset": "Spryker",
+        "priority": "1"
+    }
+]

@@ -8,9 +8,7 @@
 namespace Spryker\Zed\Configuration\Persistence;
 
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
-use Orm\Zed\Configuration\Persistence\SpyConfigurationStorageQuery;
 use Orm\Zed\Configuration\Persistence\SpyConfigurationValue;
-use Orm\Zed\Configuration\Persistence\SpyConfigurationValueQuery;
 use Propel\Runtime\ActiveQuery\Criteria;
 use Spryker\Zed\Kernel\Persistence\AbstractEntityManager;
 
@@ -29,7 +27,7 @@ class ConfigurationEntityManager extends AbstractEntityManager implements Config
         $scope = $configurationValueTransfer->getScopeOrFail();
         $value = $configurationValueTransfer->getValueOrFail();
 
-        $configurationValueEntity = $this->getConfigurationValueEntity(
+        $configurationValueEntity = $this->findOrCreateConfigurationValueEntity(
             $settingKey,
             $scope,
             $configurationValueTransfer->getScopeIdentifier(),
@@ -46,7 +44,7 @@ class ConfigurationEntityManager extends AbstractEntityManager implements Config
 
     public function deleteConfigurationValue(string $key, string $scope, ?string $scopeIdentifier = null): void
     {
-        $valueQuery = $this->getConfigurationValueQuery()
+        $valueQuery = $this->getFactory()->createSpyConfigurationValueQuery()
             ->filterBySettingKey($key)
             ->filterByScope($scope);
 
@@ -58,20 +56,18 @@ class ConfigurationEntityManager extends AbstractEntityManager implements Config
 
         /** @var \Propel\Runtime\Collection\Collection|\Propel\Runtime\Collection\ObjectCollection $configurationValueEntities */
         $configurationValueEntities = $valueQuery->find();
+
         foreach ($configurationValueEntities as $configurationValueEntity) {
             $configurationValueEntity->delete();
         }
     }
 
     /**
-     * @param string $storageKey
      * @param array<string, string> $data
-     *
-     * @return void
      */
     public function saveConfigurationStorage(string $storageKey, array $data): void
     {
-        $storageEntity = $this->getConfigurationStorageQuery()
+        $storageEntity = $this->getFactory()->createSpyConfigurationStorageQuery()
             ->filterByScope($storageKey)
             ->findOneOrCreate();
 
@@ -83,17 +79,18 @@ class ConfigurationEntityManager extends AbstractEntityManager implements Config
     public function deleteConfigurationStorage(string $storageKey): void
     {
         /** @var \Propel\Runtime\Collection\Collection|\Propel\Runtime\Collection\ObjectCollection $configurationStorageEntities */
-        $configurationStorageEntities = $this->getConfigurationStorageQuery()
+        $configurationStorageEntities = $this->getFactory()->createSpyConfigurationStorageQuery()
             ->filterByScope($storageKey)
             ->find();
+
         foreach ($configurationStorageEntities as $configurationStorageEntity) {
             $configurationStorageEntity->delete();
         }
     }
 
-    protected function getConfigurationValueEntity(string $settingKey, string $scope, ?string $scopeIdentifier): SpyConfigurationValue
+    protected function findOrCreateConfigurationValueEntity(string $settingKey, string $scope, ?string $scopeIdentifier): SpyConfigurationValue
     {
-        $valueQuery = $this->getConfigurationValueQuery()
+        $valueQuery = $this->getFactory()->createSpyConfigurationValueQuery()
             ->filterBySettingKey($settingKey)
             ->filterByScope($scope);
 
@@ -111,21 +108,5 @@ class ConfigurationEntityManager extends AbstractEntityManager implements Config
         }
 
         return new SpyConfigurationValue();
-    }
-
-    protected function getConfigurationValueQuery(): SpyConfigurationValueQuery
-    {
-        /** @var \Orm\Zed\Configuration\Persistence\SpyConfigurationValueQuery $configurationValueQuery */
-        $configurationValueQuery = SpyConfigurationValueQuery::create();
-
-        return $configurationValueQuery;
-    }
-
-    protected function getConfigurationStorageQuery(): SpyConfigurationStorageQuery
-    {
-        /** @var \Orm\Zed\Configuration\Persistence\SpyConfigurationStorageQuery $configurationStorageQuery */
-        $configurationStorageQuery = SpyConfigurationStorageQuery::create();
-
-        return $configurationStorageQuery;
     }
 }

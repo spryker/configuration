@@ -16,9 +16,13 @@ class ConfigurationDependencyProvider extends AbstractDependencyProvider
 
     public const string SERVICE_SYNCHRONIZATION = 'SERVICE_SYNCHRONIZATION';
 
+    public const string SERVICE_UTIL_ENCRYPTION = 'SERVICE_UTIL_ENCRYPTION';
+
     public const string PLUGINS_CONFIGURATION_VALUE_REQUEST_EXPANDER = 'PLUGINS_CONFIGURATION_VALUE_REQUEST_EXPANDER';
 
-    public const string SERVICE_UTIL_ENCRYPTION = 'SERVICE_UTIL_ENCRYPTION';
+    public const string SERVICE_CONFIGURATION = 'configuration';
+
+    public const string IS_CONFIGURATION_SERVICE_PROVIDED = 'IS_CONFIGURATION_SERVICE_PROVIDED';
 
     public function provideServiceLayerDependencies(Container $container): Container
     {
@@ -27,6 +31,26 @@ class ConfigurationDependencyProvider extends AbstractDependencyProvider
         $container = $this->addSynchronizationService($container);
         $container = $this->addUtilEncryptionService($container);
         $container = $this->addConfigurationValueRequestExpanderPlugins($container);
+        $container = $this->addConfigurationService($container);
+        $container = $this->addIsConfigurationServiceProvidedFlag($container);
+
+        return $container;
+    }
+
+    protected function addConfigurationService(Container $container): Container
+    {
+        $container->set(static::SERVICE_CONFIGURATION, function (Container $container) {
+            return $container->getApplicationService(static::SERVICE_CONFIGURATION);
+        });
+
+        return $container;
+    }
+
+    protected function addIsConfigurationServiceProvidedFlag(Container $container): Container
+    {
+        $container->set(static::IS_CONFIGURATION_SERVICE_PROVIDED, function (Container $container) {
+            return $container->hasApplicationService(static::SERVICE_CONFIGURATION);
+        });
 
         return $container;
     }

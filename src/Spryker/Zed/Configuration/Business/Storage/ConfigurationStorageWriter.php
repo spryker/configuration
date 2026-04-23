@@ -8,6 +8,7 @@
 namespace Spryker\Zed\Configuration\Business\Storage;
 
 use Spryker\Shared\Configuration\ConfigurationConstants;
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
 use Spryker\Zed\Configuration\Persistence\ConfigurationEntityManagerInterface;
 use Spryker\Zed\Configuration\Persistence\ConfigurationRepositoryInterface;
@@ -69,7 +70,7 @@ class ConfigurationStorageWriter implements ConfigurationStorageWriterInterface
 
             $settingEntry = $settingsMap[$settingKey];
 
-            if (empty($settingEntry[ConfigurationConstants::SCHEMA_KEY_STOREFRONT]) || !empty($settingEntry[ConfigurationConstants::SCHEMA_KEY_SECRET])) {
+            if (empty($settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_STOREFRONT]) || !empty($settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_SECRET])) {
                 continue;
             }
 

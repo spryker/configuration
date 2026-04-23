@@ -26,6 +26,8 @@
         <property name="order" type="int"/>
         <property name="fileUpload" type="array" singular="fileUploadOption"/>
         <property name="sanitizeXss" type="array" singular="sanitizeXssOption"/>
+        <property name="status" type="string"/>
+        <property name="dataObject" type="string"/>
     </transfer>
 
     <transfer name="ConfigurationValue" strict="true">
@@ -50,6 +52,7 @@
         <property name="name" type="string"/>
         <property name="description" type="string"/>
         <property name="isEnabled" type="bool"/>
+        <property name="status" type="string"/>
         <property name="tabs" type="ConfigurationTab[]" singular="tab"/>
     </transfer>
 
@@ -59,6 +62,7 @@
         <property name="description" type="string"/>
         <property name="icon" type="string"/>
         <property name="isEnabled" type="bool"/>
+        <property name="status" type="string"/>
     </transfer>
 
     <transfer name="ConfigurationGroup" strict="true">
@@ -67,6 +71,7 @@
         <property name="description" type="string"/>
         <property name="scopes" type="array" singular="scope"/>
         <property name="isEnabled" type="bool"/>
+        <property name="status" type="string"/>
         <property name="settings" type="ConfigurationSetting[]" singular="setting"/>
     </transfer>
 
@@ -85,6 +90,7 @@
         <property name="isSuccess" type="bool"/>
         <property name="processedCount" type="int"/>
         <property name="errorMessages" type="array" singular="errorMessage"/>
+        <property name="warningMessages" type="array" singular="warningMessage"/>
     </transfer>
 
     <transfer name="ConfigurationSettingCollection" strict="true">
@@ -257,6 +263,18 @@
     <transfer name="HtmlSanitizerAllowedAttribute" strict="true">
         <property name="attribute" type="string"/>
         <property name="allowedElements" type="string[]" singular="allowedElement"/>
+    </transfer>
+
+    <transfer name="AuditLoggerConfigCriteria" strict="true">
+    </transfer>
+
+    <transfer name="DataImporterConfiguration">
+    </transfer>
+
+    <transfer name="DataImporterReport">
+    </transfer>
+
+    <transfer name="DataImporterDataSourceConfiguration">
     </transfer>
 
 </transfers>

@@ -16,13 +16,7 @@ interface ConfigurationEntityManagerInterface
     public function deleteConfigurationValue(string $key, string $scope, ?string $scopeIdentifier = null): void;
 
     /**
-     * Upserts a single storage row keyed by scope.
-     * Data is a map of settingKey → value for all storefront settings in that scope.
-     *
-     * @param string $storageKey
      * @param array<string, string> $data
-     *
-     * @return void
      */
     public function saveConfigurationStorage(string $storageKey, array $data): void;
 

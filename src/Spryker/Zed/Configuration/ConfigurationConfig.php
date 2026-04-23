@@ -7,7 +7,9 @@
 
 namespace Spryker\Zed\Configuration;
 
+use Generated\Shared\Transfer\DataImporterDataSourceConfigurationTransfer;
 use Spryker\Shared\Configuration\ConfigurationConfig as ConfigurationConfigurationConfig;
+use Spryker\Shared\Kernel\KernelConstants;
 use Spryker\Zed\Kernel\AbstractBundleConfig;
 
 /**
@@ -16,6 +18,8 @@ use Spryker\Zed\Kernel\AbstractBundleConfig;
 class ConfigurationConfig extends AbstractBundleConfig
 {
     protected const string DEFAULT_FILE_UPLOAD_MAX_FILE_SIZE = '10M';
+
+    public const string IMPORT_TYPE_CONFIGURATION_VALUE = 'configuration-value';
 
     /**
      * Specification:
@@ -47,6 +51,20 @@ class ConfigurationConfig extends AbstractBundleConfig
         return [
             'resources/configuration',
         ];
+    }
+
+    /**
+     * Specification:
+     * - Returns the list of core organization namespaces used for configuration usage scanning.
+     * - Reads from environment configuration using `KernelConstants::CORE_NAMESPACES`.
+     *
+     * @api
+     *
+     * @return array<string>
+     */
+    public function getCoreNamespaces(): array
+    {
+        return $this->get(KernelConstants::CORE_NAMESPACES);
     }
 
     /**
@@ -177,5 +195,31 @@ class ConfigurationConfig extends AbstractBundleConfig
     public function getEncryptionInitVector(): string
     {
         return $this->getSharedConfig()->getEncryptionInitVector();
+    }
+
+    /**
+     * Specification:
+     * - Returns the import type identifier for configuration value data import.
+     *
+     * @api
+     */
+    public function getConfigurationValueImportType(): string
+    {
+        return static::IMPORT_TYPE_CONFIGURATION_VALUE;
+    }
+
+    /**
+     * Specification:
+     * - Returns the data importer data source configuration for configuration value import.
+     * - Used by `DataImportFactoryTrait::getCsvDataImporterFromConfig()` to create the CSV reader.
+     *
+     * @api
+     */
+    public function getConfigurationValueDataImporterDataSourceConfiguration(): DataImporterDataSourceConfigurationTransfer
+    {
+        return (new DataImporterDataSourceConfigurationTransfer())
+            ->setImportType(static::IMPORT_TYPE_CONFIGURATION_VALUE)
+            ->setModuleName('Configuration')
+            ->setFileName('configuration_value.csv');
     }
 }
