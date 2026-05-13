@@ -268,6 +268,12 @@ class ConfigurationManagement {
             return null;
         }
 
+        if (cached.input.type === 'radio') {
+            const checkedRadio = cached.row.querySelector('.config-input:checked');
+
+            return checkedRadio ? checkedRadio.value : null;
+        }
+
         return this.#readValueFromInput(cached.input);
     }
 
@@ -346,8 +352,13 @@ class ConfigurationManagement {
             }
 
             const original = this.#originalValues.get(dependentKey);
+            const change = this.#changes.get(dependentKey);
 
-            return this.#changes.has(dependentKey) || (original && original.hasCustomValue);
+            // A "changed-by-dependency" row is auto-staged on activation with its default value.
+            // It only represents user intent when the staged value differs from the original.
+            const hasUserChange = change ? change.useDefault || change.value !== original?.displayValue : false;
+
+            return hasUserChange || (original && original.hasCustomValue);
         });
 
         if (dependentsWithChanges.length === 0) {
@@ -358,13 +369,19 @@ class ConfigurationManagement {
 
         const dependentNames = dependentsWithChanges.map((dependentKey) => {
             const cached = this.#rowCache.get(dependentKey);
-            const label = cached?.row.querySelector('.setting-label label');
+            const header = cached?.row.querySelector('.setting-row__item-header');
+            const firstTextNode =
+                header &&
+                Array.from(header.childNodes).find(
+                    (node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '',
+                );
 
-            return label ? label.textContent.trim() : dependentKey;
+            return firstTextNode ? firstTextNode.textContent.trim() : dependentKey;
         });
 
-        // Template: "Changing this setting will reset the following dependent settings:\n\n%settings%\n\nDo you want to continue?"
-        const message = this.#i18n.dependentResetConfirmTemplate.replace('%settings%', dependentNames.join('\n'));
+        const message = this.#i18n.dependentResetConfirmTemplate
+            .replace('%settings%', dependentNames.join('\n'))
+            .replaceAll('%newline%', '\n');
 
         if (!confirm(message)) {
             return;
