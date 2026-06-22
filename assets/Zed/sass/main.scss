@@ -380,12 +380,14 @@ $medium-screen-width: 768px;
 // Color Input
 
 .color-preview {
+    .color-swatch-wrapper,
     .input-group-text {
         transition: border-color 0.2s ease;
     }
 
     &:has(input:focus),
     &:hover {
+        .color-swatch-wrapper,
         .input-group-text {
             border-color: var(--ins-dark-border-subtle);
         }
@@ -402,6 +404,8 @@ $medium-screen-width: 768px;
     min-height: 38px;
     background-color: var(--input-color);
     border-radius: 0 10px 10px 0;
+    border: 2px solid #f1f1f1;
+    border-left: 0;
 }
 
 .color-swatch-input {
