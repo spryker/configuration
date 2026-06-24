@@ -19,6 +19,9 @@ class ConfigurationConfig extends AbstractBundleConfig
 {
     protected const string DEFAULT_FILE_UPLOAD_MAX_FILE_SIZE = '10M';
 
+    /**
+     * @api
+     */
     public const string IMPORT_TYPE_CONFIGURATION_VALUE = 'configuration-value';
 
     /**
