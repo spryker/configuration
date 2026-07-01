@@ -28,6 +28,9 @@ class ConfigurationOverrideCollector implements ConfigurationOverrideCollectorIn
 
     /**
      * {@inheritDoc}
+     *
+     * @param array<string, array<int, array{coreClass: string, coreMethod: string, projectClass: string, projectMethod: string}>> $overrides
+     * @param array<string, array<string>> $methodsWithKeys
      */
     public function collectOverrides(array &$overrides, string $coreClassName, string $layer, array $methodsWithKeys): void
     {

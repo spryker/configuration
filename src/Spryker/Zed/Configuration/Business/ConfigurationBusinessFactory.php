@@ -55,6 +55,8 @@ use Spryker\Zed\Configuration\Business\Sync\ConfigurationSchemaSync;
 use Spryker\Zed\Configuration\Business\Sync\ConfigurationSchemaSyncInterface;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationConstraintMapper;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationConstraintMapperInterface;
+use Spryker\Zed\Configuration\Business\Validator\ConfigurationSchemaKeyValidator;
+use Spryker\Zed\Configuration\Business\Validator\ConfigurationSchemaKeyValidatorInterface;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationValueValidator;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationValueValidatorInterface;
 use Spryker\Zed\Configuration\Business\Writer\ConfigurationValueWriter;
@@ -87,7 +89,13 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
             $this->getConfig(),
             $this->createConfigurationUsageScanner(),
             $this->getUtilEncodingService(),
+            $this->createConfigurationSchemaKeyValidator(),
         );
+    }
+
+    public function createConfigurationSchemaKeyValidator(): ConfigurationSchemaKeyValidatorInterface
+    {
+        return new ConfigurationSchemaKeyValidator();
     }
 
     public function createConfigurationUsageScanner(): ConfigurationUsageScannerInterface

@@ -129,6 +129,63 @@ class SyncConfigurationSchemasFacadeTest extends Unit
         $this->assertSame('default', $settingsMap['test_feature:general:display:test_setting']['default_value']);
     }
 
+    public function testSyncConfigurationSchemasFailsOnDuplicateCompoundKeys(): void
+    {
+        // Arrange
+        $this->createSchemaWithDuplicateCompoundKeys();
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertFalse($result->getIsSuccess());
+        $this->assertNotEmpty($result->getErrorMessages());
+    }
+
+    public function testSyncConfigurationSchemasFailsOnDuplicateStaticKeys(): void
+    {
+        // Arrange
+        $this->createSchemaWithDuplicateStaticKeys();
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertFalse($result->getIsSuccess());
+        $this->assertNotEmpty($result->getErrorMessages());
+    }
+
+    public function testSyncConfigurationSchemasFailsWhenStaticKeyCollidesWithCompoundKey(): void
+    {
+        // Arrange
+        $this->createSchemaWithStaticKeyCollidingCompoundKey();
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertFalse($result->getIsSuccess());
+        $this->assertNotEmpty($result->getErrorMessages());
+    }
+
+    public function testSyncConfigurationSchemasUsesStaticKeyAsSettingsMapKey(): void
+    {
+        // Arrange
+        $this->createSchemaWithStaticKey();
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $facade->syncConfigurationSchemas();
+
+        // Assert
+        $settingsMap = require $this->tempSettingsMapOutputPath;
+        $this->assertArrayHasKey('my_static_key', $settingsMap);
+        $this->assertArrayNotHasKey('test_feature:general:display:static_setting', $settingsMap);
+    }
+
     protected function createFacadeWithSchemaDirectory(string $schemaPath): ConfigurationFacade
     {
         $configMock = $this->createMock(ConfigurationConfig::class);
@@ -179,6 +236,157 @@ features:
             settings:
               - key: test_setting
                 name: Test Setting
+                type: string
+                default_value: "default"
+                scopes:
+                  - global
+YAML;
+
+        file_put_contents($dir . '/test.configuration.yaml', $yaml);
+    }
+
+    protected function createSchemaWithDuplicateCompoundKeys(): void
+    {
+        $dir = __DIR__ . '/../_data/sync_schemas';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        // Two settings in different groups with the same key → same compound key
+        $yaml = <<<'YAML'
+features:
+  - key: feat
+    name: Feat
+    tabs:
+      - key: tab
+        name: Tab
+        groups:
+          - key: group_a
+            name: Group A
+            scopes:
+              - global
+            settings:
+              - key: the_key
+                name: Setting 1
+                type: string
+                scopes:
+                  - global
+          - key: group_a
+            name: Group A Duplicate
+            scopes:
+              - global
+            settings:
+              - key: the_key
+                name: Setting 2
+                type: string
+                scopes:
+                  - global
+YAML;
+
+        file_put_contents($dir . '/test.configuration.yaml', $yaml);
+    }
+
+    protected function createSchemaWithDuplicateStaticKeys(): void
+    {
+        $dir = __DIR__ . '/../_data/sync_schemas';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $yaml = <<<'YAML'
+features:
+  - key: feat
+    name: Feat
+    tabs:
+      - key: tab
+        name: Tab
+        groups:
+          - key: group_a
+            name: Group A
+            scopes:
+              - global
+            settings:
+              - key: setting_one
+                static_key: shared_static
+                name: Setting 1
+                type: string
+                scopes:
+                  - global
+              - key: setting_two
+                static_key: shared_static
+                name: Setting 2
+                type: string
+                scopes:
+                  - global
+YAML;
+
+        file_put_contents($dir . '/test.configuration.yaml', $yaml);
+    }
+
+    protected function createSchemaWithStaticKeyCollidingCompoundKey(): void
+    {
+        $dir = __DIR__ . '/../_data/sync_schemas';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        // setting_two has static_key == compound key of setting_one
+        $yaml = <<<'YAML'
+features:
+  - key: feat
+    name: Feat
+    tabs:
+      - key: tab
+        name: Tab
+        groups:
+          - key: grp
+            name: Grp
+            scopes:
+              - global
+            settings:
+              - key: setting_one
+                name: Setting 1
+                type: string
+                scopes:
+                  - global
+              - key: setting_two
+                static_key: feat:tab:grp:setting_one
+                name: Setting 2
+                type: string
+                scopes:
+                  - global
+YAML;
+
+        file_put_contents($dir . '/test.configuration.yaml', $yaml);
+    }
+
+    protected function createSchemaWithStaticKey(): void
+    {
+        $dir = __DIR__ . '/../_data/sync_schemas';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $yaml = <<<'YAML'
+features:
+  - key: test_feature
+    name: Test Feature
+    tabs:
+      - key: general
+        name: General
+        groups:
+          - key: display
+            name: Display
+            scopes:
+              - global
+            settings:
+              - key: static_setting
+                static_key: my_static_key
+                name: Static Setting
                 type: string
                 default_value: "default"
                 scopes:

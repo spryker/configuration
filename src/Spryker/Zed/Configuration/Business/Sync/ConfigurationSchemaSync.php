@@ -13,6 +13,7 @@ use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Shared\Configuration\Schema\SchemaParserInterface;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaSettingsMapperInterface;
 use Spryker\Zed\Configuration\Business\Search\ConfigurationUsageScannerInterface;
+use Spryker\Zed\Configuration\Business\Validator\ConfigurationSchemaKeyValidatorInterface;
 use Spryker\Zed\Configuration\ConfigurationConfig;
 
 class ConfigurationSchemaSync implements ConfigurationSchemaSyncInterface
@@ -25,6 +26,7 @@ class ConfigurationSchemaSync implements ConfigurationSchemaSyncInterface
         protected ConfigurationConfig $config,
         protected ConfigurationUsageScannerInterface $usageScanner,
         protected UtilEncodingServiceInterface $utilEncodingService,
+        protected ConfigurationSchemaKeyValidatorInterface $schemaKeyValidator,
     ) {
     }
 
@@ -58,6 +60,16 @@ class ConfigurationSchemaSync implements ConfigurationSchemaSyncInterface
 
         $availableScopes = $this->config->getAvailableScopes();
         $mergedSchema = $this->filterInvalidScopes($mergedSchema, $availableScopes);
+
+        $keyErrors = $this->schemaKeyValidator->validate($mergedSchema);
+
+        if ($keyErrors !== []) {
+            foreach ($keyErrors as $keyError) {
+                $configurationSyncResponseTransfer->addErrorMessage($keyError);
+            }
+
+            return $configurationSyncResponseTransfer;
+        }
 
         $overridesByKey = $this->usageScanner->scan();
         $mergedSchema = $this->injectOverrides($mergedSchema, $overridesByKey);
@@ -197,13 +209,14 @@ class ConfigurationSchemaSync implements ConfigurationSchemaSyncInterface
             }
 
             $compoundKey = sprintf('%s:%s:%s:%s', $featureKey, $tabKey, $groupKey, $setting[ConfigurationSchemaConstants::SCHEMA_KEY_KEY]);
+            $effectiveKey = (string)($setting[ConfigurationSchemaConstants::SCHEMA_KEY_STATIC_KEY] ?? $compoundKey);
             $defaultValue = $setting[ConfigurationSchemaConstants::SCHEMA_KEY_DEFAULT_VALUE] ?? null;
 
             if ($defaultValue !== null && !is_string($defaultValue)) {
                 $defaultValue = (string)$this->utilEncodingService->encodeJson($defaultValue);
             }
 
-            $map[$compoundKey] = [
+            $map[$effectiveKey] = [
                 ConfigurationSchemaConstants::SCHEMA_KEY_TYPE => $setting[ConfigurationSchemaConstants::SCHEMA_KEY_TYPE],
                 ConfigurationSchemaConstants::SCHEMA_KEY_DEFAULT_VALUE => $defaultValue,
                 ConfigurationSchemaConstants::SCHEMA_KEY_SECRET => $setting[ConfigurationSchemaConstants::SCHEMA_KEY_SECRET] ?? false,

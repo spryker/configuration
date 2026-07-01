@@ -161,6 +161,11 @@
                     "description": "Unique identifier for the setting (combined with feature and group)",
                     "pattern": "^[a-z][a-z0-9_]*$"
                 },
+                "static_key": {
+                    "type": "string",
+                    "description": "Optional. Unique identifier for the setting, not combined with feature and group, replaces the combined key.",
+                    "pattern": "^([a-z][a-z0-9_]*:)*[a-z][a-z0-9_]*$"
+                },
                 "name": {
                     "type": "string",
                     "description": "Display name for the setting",

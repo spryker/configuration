@@ -58,6 +58,8 @@ class ConfigurationAuditLogger implements ConfigurationAuditLoggerInterface
 
     /**
      * {@inheritDoc}
+     *
+     * @param array<\Generated\Shared\Transfer\ConfigurationErrorTransfer> $errors
      */
     public function logConfigurationValueSaveFailed(
         ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer,

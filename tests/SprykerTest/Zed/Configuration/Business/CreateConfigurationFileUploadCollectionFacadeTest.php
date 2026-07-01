@@ -214,7 +214,7 @@ class CreateConfigurationFileUploadCollectionFacadeTest extends Unit
     }
 
     /**
-     * @param array<\Generated\Shared\Transfer\ConfigurationFileUploadTransfer> $fileUploads
+     * @param array<\Generated\Shared\Transfer\ConfigurationFileUploadTransfer> $configurationFileUploadTransfers
      */
     protected function createRequestTransfer(bool $isTransactional, array $configurationFileUploadTransfers): ConfigurationFileUploadCollectionRequestTransfer
     {

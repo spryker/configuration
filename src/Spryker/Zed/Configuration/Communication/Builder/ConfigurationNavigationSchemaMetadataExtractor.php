@@ -59,6 +59,10 @@ class ConfigurationNavigationSchemaMetadataExtractor implements ConfigurationNav
 
     /**
      * {@inheritDoc}
+     *
+     * @param array<mixed> $schemaMetadata
+     *
+     * @return array<string, bool>
      */
     public function extractDisabledFeatureKeys(array $schemaMetadata): array
     {
@@ -75,6 +79,10 @@ class ConfigurationNavigationSchemaMetadataExtractor implements ConfigurationNav
 
     /**
      * {@inheritDoc}
+     *
+     * @param array<mixed> $schemaMetadata
+     *
+     * @return array<string, array<string, bool>>
      */
     public function extractDisabledTabKeys(array $schemaMetadata): array
     {

@@ -180,6 +180,11 @@ interface ConfigurationSchemaConstants
     /**
      * @api
      */
+    public const string SCHEMA_KEY_STATIC_KEY = 'static_key';
+
+    /**
+     * @api
+     */
     public const string SCHEMA_KEY_NAME = 'name';
 
     /**
