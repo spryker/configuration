@@ -69,6 +69,8 @@ use Spryker\Zed\DataImport\Business\Model\DataSet\DataSetStepBroker;
 use Spryker\Zed\FileManager\Business\FileManagerFacadeInterface;
 use Spryker\Zed\Kernel\Business\AbstractBusinessFactory;
 use Spryker\Zed\Translator\Business\TranslatorFacadeInterface;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @method \Spryker\Zed\Configuration\ConfigurationConfig getConfig()
@@ -188,7 +190,15 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
         return new ConfigurationValueValidator(
             $this->createConfigurationSchemaProvider(),
             $this->createConfigurationConstraintMapper(),
+            $this->getSymfonyValidator(),
         );
+    }
+
+    public function getSymfonyValidator(): ValidatorInterface
+    {
+        return Validation::createValidatorBuilder()
+            ->setTranslator($this->getTranslatorFacade())
+            ->getValidator();
     }
 
     public function createConfigurationConstraintMapper(): ConfigurationConstraintMapperInterface

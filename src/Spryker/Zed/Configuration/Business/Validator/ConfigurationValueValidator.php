@@ -12,13 +12,14 @@ use Generated\Shared\Transfer\ConfigurationValidationResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
 use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaProviderInterface;
-use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ConfigurationValueValidator implements ConfigurationValueValidatorInterface
 {
     public function __construct(
         protected ConfigurationSchemaProviderInterface $schemaProvider,
         protected ConfigurationConstraintMapperInterface $constraintMapper,
+        protected ValidatorInterface $symfonyValidator,
     ) {
     }
 
@@ -42,7 +43,7 @@ class ConfigurationValueValidator implements ConfigurationValueValidatorInterfac
 
         $settingType = $settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_TYPE] ?? null;
         $symfonyConstraints = $this->mapConstraintDefinitions($constraintDefinitions, $settingType);
-        $violations = Validation::createValidator()->validate($value, $symfonyConstraints);
+        $violations = $this->symfonyValidator->validate($value, $symfonyConstraints);
 
         if ($violations->count() === 0) {
             return $this->createSuccessResponse();
