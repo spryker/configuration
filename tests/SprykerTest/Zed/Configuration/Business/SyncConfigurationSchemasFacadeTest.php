@@ -186,10 +186,33 @@ class SyncConfigurationSchemasFacadeTest extends Unit
         $this->assertArrayNotHasKey('test_feature:general:display:static_setting', $settingsMap);
     }
 
-    protected function createFacadeWithSchemaDirectory(string $schemaPath): ConfigurationFacade
+    public function testGivenAWildcardModuleDirectoryPattenWhenSchemasAreSyncedThenTheSchemaIsDiscovered(): void
+    {
+        // Arrange
+        $this->createTestSchemaYaml();
+        $relativeSchemaPath = $this->getRelativeSchemaPath();
+        $facade = $this->createFacadeWithSchemaDirectory(
+            basename($relativeSchemaPath),
+            [dirname($relativeSchemaPath, 2) . DIRECTORY_SEPARATOR . '*'],
+        );
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertTrue($result->getIsSuccess());
+        $settingsMap = require $this->tempSettingsMapOutputPath;
+        $this->assertArrayHasKey('test_feature:general:display:test_setting', $settingsMap);
+    }
+
+    /**
+     * @param array<string> $moduleDirectoryPattens
+     */
+    protected function createFacadeWithSchemaDirectory(string $schemaPath, array $moduleDirectoryPattens = []): ConfigurationFacade
     {
         $configMock = $this->createMock(ConfigurationConfig::class);
         $configMock->method('getCoreConfigSchemaPattens')->willReturn([$schemaPath]);
+        $configMock->method('getCoreModuleDirectoryPattens')->willReturn($moduleDirectoryPattens);
         $configMock->method('getProjectConfigSchemaPattens')->willReturn([]);
         $configMock->method('getMergedSchemaFilePath')->willReturn($this->tempSchemaOutputPath);
         $configMock->method('getSettingsMapFilePath')->willReturn($this->tempSettingsMapOutputPath);

@@ -58,6 +58,23 @@ class ConfigurationConfig extends AbstractBundleConfig
 
     /**
      * Specification:
+     * - Returns glob patterns relative to the application root that resolve to core module roots.
+     * - Combined with `ConfigurationConfig::getCoreConfigSchemaPattens()` to form the `configuration:sync` scan roots.
+     *
+     * @api
+     *
+     * @return array<string>
+     */
+    public function getCoreModuleDirectoryPattens(): array
+    {
+        return [
+            'src/*/*',
+            'vendor/*/*',
+        ];
+    }
+
+    /**
+     * Specification:
      * - Returns the list of core organization namespaces used for configuration usage scanning.
      * - Reads from environment configuration using `KernelConstants::CORE_NAMESPACES`.
      *

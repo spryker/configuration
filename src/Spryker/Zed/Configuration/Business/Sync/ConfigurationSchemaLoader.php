@@ -27,7 +27,10 @@ class ConfigurationSchemaLoader implements ConfigurationSchemaLoaderInterface
      */
     public function loadCoreSchemas(): Generator
     {
-        yield from $this->findSchemaFiles($this->configurationConfig->getCoreConfigSchemaPattens());
+        yield from $this->findSchemaFiles($this->resolveSchemaDirectories(
+            $this->configurationConfig->getCoreConfigSchemaPattens(),
+            $this->configurationConfig->getCoreModuleDirectoryPattens(),
+        ));
     }
 
     /**
@@ -35,24 +38,67 @@ class ConfigurationSchemaLoader implements ConfigurationSchemaLoaderInterface
      */
     public function loadProjectSchemas(): Generator
     {
-        yield from $this->findSchemaFiles($this->configurationConfig->getProjectConfigSchemaPattens());
+        yield from $this->findSchemaFiles($this->resolveSchemaDirectories(
+            $this->configurationConfig->getProjectConfigSchemaPattens(),
+            [],
+        ));
     }
 
     /**
-     * @param array<string> $patterns
+     * @param array<string> $schemaPattens
+     * @param array<string> $moduleDirectoryPattens
+     *
+     * @return array<string>
+     */
+    protected function resolveSchemaDirectories(array $schemaPattens, array $moduleDirectoryPattens): array
+    {
+        if ($moduleDirectoryPattens === []) {
+            return $this->globDirectories($schemaPattens);
+        }
+
+        $globPattens = [];
+        foreach ($schemaPattens as $schemaPatten) {
+            foreach ($moduleDirectoryPattens as $moduleDirectoryPatten) {
+                $globPattens[] = $moduleDirectoryPatten . DIRECTORY_SEPARATOR . $schemaPatten;
+            }
+        }
+
+        return $this->globDirectories($globPattens);
+    }
+
+    /**
+     * @param array<string> $globPattens
+     *
+     * @return array<string>
+     */
+    protected function globDirectories(array $globPattens): array
+    {
+        $directories = [];
+        foreach ($globPattens as $globPatten) {
+            $matches = glob(APPLICATION_ROOT_DIR . DIRECTORY_SEPARATOR . $globPatten, GLOB_ONLYDIR);
+            if ($matches) {
+                $directories = array_merge($directories, $matches);
+            }
+        }
+
+        // Overlapping pattens resolve to the same directory; Finder would re-read its files once per duplicate.
+        return array_values(array_unique($directories));
+    }
+
+    /**
+     * @param array<string> $directories
      *
      * @return \Generator<\Symfony\Component\Finder\SplFileInfo>
      */
-    protected function findSchemaFiles(array $patterns): Generator
+    protected function findSchemaFiles(array $directories): Generator
     {
-        if ($patterns === []) {
+        if ($directories === []) {
             return;
         }
 
         $finder = new Finder();
         $finder->files()
-            ->in(APPLICATION_ROOT_DIR)
-            ->path($patterns)
+            ->in($directories)
             ->name(static::SCHEMA_EXTENSIONS)
             ->sortByName();
 
