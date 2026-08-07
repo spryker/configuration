@@ -57,28 +57,35 @@ class ConfigurationReader extends AbstractConfigurationValueResolver implements 
 
     protected function fetchRawValue(string $key, string $scope, ?string $scopeIdentifier = null): ?string
     {
-        if ($this->config->isCacheEnabled()) {
-            $cachedValue = $this->cacheManager->get($key, $scope, $scopeIdentifier);
-
-            if ($cachedValue !== null) {
-                return $cachedValue;
-            }
+        if (!$this->config->isCacheEnabled()) {
+            return $this->decryptIfSecret($key, $this->findStoredValue($key, $scope, $scopeIdentifier));
         }
 
-        $valueTransfer = $this->repository->findConfigurationValueByKeyAndScope($key, $scope, $scopeIdentifier);
+        $this->warmUpScopeCache($scope, $scopeIdentifier);
 
-        if (!$valueTransfer) {
-            return null;
+        return $this->decryptIfSecret($key, $this->cacheManager->get($key, $scope, $scopeIdentifier));
+    }
+
+    protected function warmUpScopeCache(string $scope, ?string $scopeIdentifier): void
+    {
+        if ($this->cacheManager->isScopeWarm($scope, $scopeIdentifier)) {
+            return;
         }
 
-        $value = $valueTransfer->getValue();
-        $value = $this->decryptIfSecret($key, $value);
+        $configurationValueTransfers = $this->repository->findAllConfigurationValuesByScope($scope, $scopeIdentifier);
 
-        if ($this->config->isCacheEnabled() && $value !== null) {
-            $this->cacheManager->set($key, $scope, $scopeIdentifier, $value);
+        $rawValues = [];
+
+        foreach ($configurationValueTransfers as $settingKey => $configurationValueTransfer) {
+            $rawValues[$settingKey] = $configurationValueTransfer->getValueOrFail();
         }
 
-        return $value;
+        $this->cacheManager->warmUpScope($scope, $scopeIdentifier, $rawValues);
+    }
+
+    protected function findStoredValue(string $key, string $scope, ?string $scopeIdentifier): ?string
+    {
+        return $this->repository->findConfigurationValueByKeyAndScope($key, $scope, $scopeIdentifier)?->getValue();
     }
 
     protected function executeValueRequestExpanderPlugins(

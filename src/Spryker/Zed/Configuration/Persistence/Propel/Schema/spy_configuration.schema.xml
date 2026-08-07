@@ -18,6 +18,11 @@
             <index-column name="setting_key"/>
         </index>
 
+        <index name="spy_configuration_value-scope">
+            <index-column name="scope"/>
+            <index-column name="scope_identifier"/>
+        </index>
+
         <behavior name="timestampable"/>
 
         <id-method-parameter value="spy_configuration_value_pk_seq"/>
