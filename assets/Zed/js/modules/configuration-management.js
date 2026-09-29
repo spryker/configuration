@@ -775,7 +775,7 @@ class ConfigurationManagement {
                     Array.from(input.options).forEach((option) => {
                         option.selected = selectedValues.includes(option.value);
                     });
-                } catch (e) {
+                } catch {
                     // Malformed stored value — leave selection unchanged
                 }
             } else {

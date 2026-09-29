@@ -54,7 +54,6 @@ $medium-screen-width: 768px;
     display: grid;
     gap: 4px;
     grid-template-columns: repeat(auto-fit, minmax(150px, 200px));
-    align-items: center;
     margin: 0 0 0 auto;
     align-items: end;
     justify-content: end;
@@ -62,7 +61,6 @@ $medium-screen-width: 768px;
     &--alt {
         margin: 0;
         padding: 12px;
-
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
 }
@@ -85,7 +83,7 @@ $medium-screen-width: 768px;
 
         &:hover,
         &.active {
-            background-color: rgba(var(--ins-light-rgb), 0.8);
+            background-color: rgb(var(--ins-light-rgb), 0.8);
         }
     }
 
@@ -200,7 +198,7 @@ $medium-screen-width: 768px;
         &:checked + .toggle-slider {
             background-color: var(--ins-blue);
 
-            &:before {
+            &::before {
                 transform: translateX(24px);
             }
         }
@@ -223,7 +221,7 @@ $medium-screen-width: 768px;
     transition: 0.3s;
     border-radius: 28px;
 
-    &:before {
+    &::before {
         position: absolute;
         content: '';
         height: 20px;
@@ -256,7 +254,7 @@ $medium-screen-width: 768px;
     &:hover {
         border-color: var(--ins-secondary-bg-subtle);
         background: var(--ins-light-bg-subtle);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 4px rgb(0 0 0 / 5%);
     }
 
     input[type='radio'] {
@@ -290,7 +288,7 @@ $medium-screen-width: 768px;
 .radio-card-label {
     font-size: 14px;
     font-weight: 600;
-    margin: 0 0 6px 0;
+    margin: 0 0 6px;
     display: block;
 }
 
@@ -428,7 +426,7 @@ $medium-screen-width: 768px;
 .badge {
     gap: 4px;
     white-space: normal;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     text-align: left;
     text-wrap: balance;
     max-width: 100%;
@@ -438,7 +436,7 @@ $medium-screen-width: 768px;
     }
 
     &--beta {
-        background-color: RGBA(var(--ins-secondary-rgb), var(--ins-bg-opacity, 1));
+        background-color: rgb(var(--ins-secondary-rgb), var(--ins-bg-opacity, 1));
         color: #fff;
     }
 
@@ -480,7 +478,7 @@ $medium-screen-width: 768px;
     border-radius: 4px;
     color: #856404;
     font-size: 13px;
-    margin: 0 20px 0;
+    margin: 0 20px;
     padding: 10px 15px;
 
     i {
@@ -492,7 +490,7 @@ $medium-screen-width: 768px;
     display: inline-block;
     vertical-align: top;
     max-width: 100%;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
     min-width: 1px;
 }
 
@@ -551,7 +549,7 @@ $medium-screen-width: 768px;
     max-height: 400px;
     overflow: auto;
     padding: 8px 12px;
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
     font-size: 13px;
     line-height: 1.5;
     white-space: pre;
