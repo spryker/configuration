@@ -7,6 +7,7 @@
 
 namespace Spryker\Shared\Configuration;
 
+use RuntimeException;
 use Spryker\Shared\Kernel\AbstractSharedConfig;
 
 class ConfigurationConfig extends AbstractSharedConfig
@@ -104,5 +105,24 @@ class ConfigurationConfig extends AbstractSharedConfig
     public function getSettingsMapFilePath(): string
     {
         return APPLICATION_ROOT_DIR . '/data/cache/configuration/settings-map.php';
+    }
+
+    /**
+     * Specification:
+     * - Returns the absolute path of the file that the `configuration:export` console command writes
+     *   and the `configuration:restore` console command reads back.
+     * - Throws an exception by default. Where that file may live is a deployment decision, so it has
+     *   to be redefined on project level before either command does anything.
+     *
+     * @api
+     *
+     * @return string
+     */
+    public function getExportFile(): string
+    {
+        throw new RuntimeException(
+            'ConfigurationConfig::getExportFile() has to be redefined on project level to the absolute path '
+            . 'that "configuration:export" writes and "configuration:restore" reads back.',
+        );
     }
 }

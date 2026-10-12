@@ -7,6 +7,7 @@
 
 namespace Spryker\Zed\Configuration\Business\Writer;
 
+use Generated\Shared\Transfer\ConfigurationErrorTransfer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer;
 use Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
@@ -52,6 +53,10 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
     protected function executeSaveConfigurationValuesTransaction(
         ConfigurationValueCollectionRequestTransfer $configurationValueCollectionRequestTransfer,
     ): ConfigurationValueCollectionResponseTransfer {
+        if ($this->schemaProvider->getSettingsMap() === []) {
+            return $this->buildResponse(0, [$this->createMissingSchemaError()]);
+        }
+
         $configurationValueCollectionRequestTransfer = $this->executePreSavePlugins($configurationValueCollectionRequestTransfer);
 
         $errors = [];
@@ -104,6 +109,15 @@ class ConfigurationValueWriter implements ConfigurationValueWriterInterface
         }
 
         return $response;
+    }
+
+    protected function createMissingSchemaError(): ConfigurationErrorTransfer
+    {
+        return (new ConfigurationErrorTransfer())
+            ->setMessage(
+                'The configuration schema has not been generated, so it is unknown which settings are secret. '
+                . 'Nothing was saved. Run "configuration:sync" first.',
+            );
     }
 
     protected function encryptIfSecret(ConfigurationValueTransfer $configurationValueTransfer): void

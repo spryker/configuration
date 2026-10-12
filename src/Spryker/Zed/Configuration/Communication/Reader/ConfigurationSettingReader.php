@@ -7,6 +7,7 @@
 
 namespace Spryker\Zed\Configuration\Communication\Reader;
 
+use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Zed\Configuration\Business\ConfigurationFacadeInterface;
 
 class ConfigurationSettingReader implements ConfigurationSettingReaderInterface
@@ -49,5 +50,25 @@ class ConfigurationSettingReader implements ConfigurationSettingReaderInterface
         }
 
         return $keys;
+    }
+
+    /**
+     * @param array<string, array<string, mixed>> $settingsMap
+     *
+     * @return array<string>
+     */
+    public function filterSecretSettingKeys(array $settingsMap): array
+    {
+        $secretSettingKeys = [];
+
+        foreach ($settingsMap as $settingKey => $settingEntry) {
+            if (empty($settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_SECRET])) {
+                continue;
+            }
+
+            $secretSettingKeys[] = $settingKey;
+        }
+
+        return $secretSettingKeys;
     }
 }

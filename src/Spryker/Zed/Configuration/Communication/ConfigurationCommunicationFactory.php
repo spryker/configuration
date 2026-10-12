@@ -9,6 +9,8 @@ namespace Spryker\Zed\Configuration\Communication;
 
 use Spryker\Client\Configuration\ConfigurationClientInterface;
 use Spryker\Service\UtilEncoding\UtilEncodingServiceInterface;
+use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReader;
+use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReaderInterface;
 use Spryker\Zed\Acl\Business\AclFacadeInterface;
 use Spryker\Zed\Configuration\Communication\Builder\ConfigurationNavigationBuilder;
 use Spryker\Zed\Configuration\Communication\Builder\ConfigurationNavigationBuilderInterface;
@@ -24,6 +26,10 @@ use Spryker\Zed\Configuration\Communication\Mapper\FileUploadMapper;
 use Spryker\Zed\Configuration\Communication\Mapper\FileUploadMapperInterface;
 use Spryker\Zed\Configuration\Communication\Reader\ConfigurationSettingReader;
 use Spryker\Zed\Configuration\Communication\Reader\ConfigurationSettingReaderInterface;
+use Spryker\Zed\Configuration\Communication\Reader\ConfigurationValueExportReader;
+use Spryker\Zed\Configuration\Communication\Reader\ConfigurationValueExportReaderInterface;
+use Spryker\Zed\Configuration\Communication\Reader\EnvironmentConfigurationValueReader;
+use Spryker\Zed\Configuration\Communication\Reader\EnvironmentConfigurationValueReaderInterface;
 use Spryker\Zed\Configuration\Communication\Resolver\ConfigurationDataObjectResolver;
 use Spryker\Zed\Configuration\Communication\Resolver\ConfigurationDataObjectResolverInterface;
 use Spryker\Zed\Configuration\ConfigurationDependencyProvider;
@@ -39,6 +45,29 @@ use Symfony\Component\Form\FormInterface;
  */
 class ConfigurationCommunicationFactory extends AbstractCommunicationFactory
 {
+    public function createConfigurationSchemaReader(): ConfigurationSchemaReaderInterface
+    {
+        return new ConfigurationSchemaReader(
+            $this->getConfig()->getSharedModuleConfig(),
+        );
+    }
+
+    public function createConfigurationValueExportReader(): ConfigurationValueExportReaderInterface
+    {
+        return new ConfigurationValueExportReader(
+            $this->getFacade(),
+            $this->getRepository(),
+            $this->getConfig(),
+        );
+    }
+
+    public function createEnvironmentConfigurationValueReader(): EnvironmentConfigurationValueReaderInterface
+    {
+        return new EnvironmentConfigurationValueReader(
+            $this->getConfig(),
+        );
+    }
+
     public function createConfigurationNavigationBuilder(): ConfigurationNavigationBuilderInterface
     {
         return new ConfigurationNavigationBuilder(
@@ -89,10 +118,10 @@ class ConfigurationCommunicationFactory extends AbstractCommunicationFactory
 
     public function createFileUploadFormDataProvider(): FileUploadFormDataProvider
     {
-        return new FileUploadFormDataProvider($this->getConfig(), $this->createFileUploadSettingReader());
+        return new FileUploadFormDataProvider($this->getConfig(), $this->createConfigurationSettingReader());
     }
 
-    public function createFileUploadSettingReader(): ConfigurationSettingReaderInterface
+    public function createConfigurationSettingReader(): ConfigurationSettingReaderInterface
     {
         return new ConfigurationSettingReader($this->getFacade());
     }

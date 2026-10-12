@@ -20,4 +20,11 @@ interface ConfigurationSettingReaderInterface
      * @return array<string>
      */
     public function getFileUploadSettingKeys(): array;
+
+    /**
+     * @param array<string, array<string, mixed>> $settingsMap
+     *
+     * @return array<string>
+     */
+    public function filterSecretSettingKeys(array $settingsMap): array;
 }

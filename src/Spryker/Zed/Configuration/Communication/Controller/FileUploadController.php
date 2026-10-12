@@ -36,7 +36,7 @@ class FileUploadController extends AbstractController
     {
         $settingKey = $request->request->getString(FileUploadForm::FIELD_SETTING_KEY);
         $fileUploadSettings = $this->getFactory()
-            ->createFileUploadSettingReader()
+            ->createConfigurationSettingReader()
             ->getFileUploadConfig($settingKey);
 
         $form = $this->getFactory()

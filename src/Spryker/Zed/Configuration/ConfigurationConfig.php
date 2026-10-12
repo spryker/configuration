@@ -175,6 +175,21 @@ class ConfigurationConfig extends AbstractBundleConfig
 
     /**
      * Specification:
+     * - Returns the path of the file `configuration:export` writes and `configuration:restore` reads back.
+     * - Delegates to `ConfigurationConfig::getExportFile()` in the Shared layer, which throws until the
+     *   path is redefined on project level.
+     *
+     * @api
+     *
+     * @return string
+     */
+    public function getExportFile(): string
+    {
+        return $this->getSharedConfig()->getExportFile();
+    }
+
+    /**
+     * Specification:
      * - Returns whether in-memory caching is enabled for configuration value reads.
      * - When enabled, values are cached per request to avoid repeated database queries.
      *
