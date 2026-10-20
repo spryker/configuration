@@ -210,6 +210,26 @@ interface ConfigurationSchemaConstants
     /**
      * @api
      */
+    public const string SCHEMA_KEY_TOGGLE_ALL = 'toggle_all';
+
+    /**
+     * @api
+     */
+    public const string SCHEMA_KEY_LAYOUT = 'layout';
+
+    /**
+     * @api
+     */
+    public const string SCHEMA_KEY_SECTIONS = 'sections';
+
+    /**
+     * @api
+     */
+    public const string SCHEMA_KEY_SECTION = 'section';
+
+    /**
+     * @api
+     */
     public const string SCHEMA_KEY_ICON = 'icon';
 
     /**

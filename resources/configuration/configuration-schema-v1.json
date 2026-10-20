@@ -92,6 +92,13 @@
                     "description": "Whether this tab is enabled",
                     "default": true
                 },
+                "sections": {
+                    "type": "array",
+                    "description": "Headings that visually bundle several groups of the tab. A group joins a section through its 'section' key; the section heading is rendered above the first group of the section.",
+                    "items": {
+                        "$ref": "#/definitions/section"
+                    }
+                },
                 "groups": {
                     "type": "array",
                     "description": "Setting groups within this tab",
@@ -99,6 +106,29 @@
                     "items": {
                         "$ref": "#/definitions/group"
                     }
+                }
+            }
+        },
+        "section": {
+            "type": "object",
+            "description": "A heading shared by several groups of a tab. Only presentational: setting keys do not include the section.",
+            "required": ["key", "name"],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "description": "Unique identifier for the section within the tab, referenced by the 'section' key of a group",
+                    "pattern": "^[a-z][a-z0-9_]*$"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Display name for the section",
+                    "minLength": 1,
+                    "maxLength": 255
+                },
+                "description": {
+                    "type": "string",
+                    "description": "Detailed description of the section",
+                    "maxLength": 1000
                 }
             }
         },
@@ -140,6 +170,22 @@
                     "type": "boolean",
                     "description": "Whether this group is enabled",
                     "default": true
+                },
+                "toggle_all": {
+                    "type": "boolean",
+                    "description": "Shows a switch in the group header that turns all boolean settings of the group on or off at once. The switch itself is not stored; each setting stays individually editable.",
+                    "default": false
+                },
+                "layout": {
+                    "type": "string",
+                    "description": "Rendering layout of the group. 'compact' collapses the group to its header with an enabled-settings counter and lays boolean settings out in a grid, with descriptions as tooltips.",
+                    "enum": ["default", "compact"],
+                    "default": "default"
+                },
+                "section": {
+                    "type": "string",
+                    "description": "Key of the tab section the group belongs to. Give the groups of one section consecutive 'order' values so they render together under its heading.",
+                    "pattern": "^[a-z][a-z0-9_]*$"
                 },
                 "settings": {
                     "type": "array",

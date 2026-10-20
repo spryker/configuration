@@ -35,7 +35,7 @@
          data-i18n-saving-label="{{ '<i class=&quot;fa fa-spinner fa-spin&quot;></i> %label%' | replace({'%label%': 'Saving...' | trans}) | e('html_attr') }}"
          data-i18n-save-label="{{ '<i class=&quot;fa fa-save&quot;></i> %label%' | replace({'%label%': 'Save Configuration' | trans}) | e('html_attr') }}">
         {# Top Bar: Scope Selector + Search #}
-        
+
         <div class="card-header">
             <div class="card-title">
                 {{ 'Configuration Management' | trans }}
@@ -89,18 +89,81 @@
             {# Main Content Area #}
             <div class="config-content" id="config-content">
                 {% for group in tabSettings %}
-                    <div class="card setting-group" data-group="{{ group.key }}">
+                    {% set isCompact = group.layout == 'compact' %}
+                    {% set groupBodyId = 'setting-group-body-' ~ group.key %}
+                    {% set previousGroup = loop.first ? null : tabSettings[loop.index0 - 1] %}
+                    {% set isFirstGroupOfSection = group.section and (previousGroup is null or previousGroup.section is null or previousGroup.section.key != group.section.key) %}
+
+                    {% if isFirstGroupOfSection %}
+                        <div class="setting-section-header" data-section="{{ group.section.key }}">
+                            <h3 class="setting-section-title">{{ group.section.name | trans }}</h3>
+                            {% if group.section.description %}
+                                <p class="setting-section-description">{{ group.section.description | trans }}</p>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+
+                    <div class="card setting-group js-setting-group{% if isCompact %} setting-group--compact{% endif %}" data-group="{{ group.key }}">
                         <div class="card-header d-block">
-                            <h3 class="group-title">{{ group.name | trans }}{% include '@Configuration/Manage/_partials/status-badge.twig' with { status: group.status } only %}</h3>
-                            
+                            <div class="d-flex justify-content-between align-items-center gap-3">
+                                {% if isCompact %}
+                                    <h3 class="group-title group-title--collapsible">
+                                        <button type="button"
+                                                class="group-collapse-toggle js-group-collapse-toggle collapsed"
+                                                data-bs-toggle="collapse"
+                                                data-bs-target="#{{ groupBodyId }}"
+                                                aria-expanded="false"
+                                                aria-controls="{{ groupBodyId }}"
+                                                title="{{ 'Show or hide settings' | trans }}"
+                                                data-qa="group-collapse-toggle-{{ group.key }}">
+                                            <span class="group-collapse-toggle__icon material-symbols-outlined" aria-hidden="true">expand_more</span>
+                                            <span>{{ group.name | trans }}</span>
+                                            {% include '@Configuration/Manage/_partials/status-badge.twig' with { status: group.status } only %}
+                                            {% if group.pending_sync %}
+                                                <span class="badge badge-soft-warning">{{ 'Waiting for synchronisation' | trans }}</span>
+                                            {% endif %}
+                                            <span class="group-summary js-group-summary"
+                                                  data-summary-template="{{ '%enabled% of %total% on' | trans | e('html_attr') }}"></span>
+                                        </button>
+                                    </h3>
+                                {% else %}
+                                    <h3 class="group-title">
+                                        {{ group.name | trans }}{% include '@Configuration/Manage/_partials/status-badge.twig' with { status: group.status } only %}
+                                        {% if group.pending_sync %}
+                                            <span class="badge badge-soft-warning">{{ 'Waiting for synchronisation' | trans }}</span>
+                                        {% endif %}
+                                    </h3>
+                                {% endif %}
+
+                                {% if group.toggle_all and isCompact %}
+                                    <input type="checkbox"
+                                           class="form-check-input group-toggle-all js-group-toggle-all"
+                                           title="{{ 'Turn all settings in this group on or off' | trans }}"
+                                           aria-label="{{ 'Turn all settings in this group on or off' | trans }}"
+                                           data-qa="group-toggle-all-{{ group.key }}"
+                                           {% if not isEditable %}disabled{% endif %}>
+                                {% elseif group.toggle_all %}
+                                    <label class="toggle-switch" title="{{ 'Turn all settings in this group on or off' | trans }}">
+                                        <input type="checkbox"
+                                               class="group-toggle-all js-group-toggle-all"
+                                               aria-label="{{ 'Turn all settings in this group on or off' | trans }}"
+                                               data-qa="group-toggle-all-{{ group.key }}"
+                                               {% if not isEditable %}disabled{% endif %}>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                {% endif %}
+                            </div>
+
                             {% if group.description %}
                                 <p class="group-description">{{ group.description | trans }}</p>
                             {% endif %}
                         </div>
-                        <div class="card-body">
-                            {% for setting in group.settings %}
-                                {% include '@Configuration/Manage/_partials/setting-row.twig' %}
-                            {% endfor %}
+                        <div id="{{ groupBodyId }}"{% if isCompact %} class="collapse js-group-body"{% endif %}>
+                            <div class="card-body">
+                                {% for setting in group.settings %}
+                                    {% include '@Configuration/Manage/_partials/setting-row.twig' %}
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
                 {% endfor %}

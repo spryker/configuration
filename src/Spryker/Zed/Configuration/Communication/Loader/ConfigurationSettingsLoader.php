@@ -73,6 +73,12 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
 
     protected const string NODE_KEY_OVERRIDE_INFO = 'override_info';
 
+    protected const string NODE_KEY_TOGGLE_ALL = 'toggle_all';
+
+    protected const string NODE_KEY_SECTION = 'section';
+
+    protected const string NODE_KEY_LAYOUT = 'layout';
+
     public function __construct(
         protected ConfigurationFacadeInterface $configurationFacade,
         protected ConfigurationClientInterface $configurationClient,
@@ -132,6 +138,10 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
                     static::NODE_KEY_ORDER => $metadata[static::NODE_KEY_ORDER] ?? 0,
                     static::NODE_KEY_SETTINGS => [],
                     static::NODE_KEY_STATUS => $metadata[static::NODE_KEY_STATUS] ?? null,
+                    static::NODE_KEY_TOGGLE_ALL => $metadata[static::NODE_KEY_TOGGLE_ALL] ?? false,
+                    static::NODE_KEY_LAYOUT => $metadata[static::NODE_KEY_LAYOUT] ?? null,
+                    static::NODE_KEY_SECTION => $metadata[static::NODE_KEY_SECTION] ?? null,
+                    static::NODE_KEY_PENDING_SYNC => false,
                 ];
             }
 
@@ -183,6 +193,10 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
             ];
 
             $groups[$groupKey][static::NODE_KEY_SETTINGS][] = $this->dataObjectResolver->resolve($settingData);
+
+            if ($pendingSync) {
+                $groups[$groupKey][static::NODE_KEY_PENDING_SYNC] = true;
+            }
         }
 
         foreach ($groups as &$group) {

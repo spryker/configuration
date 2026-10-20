@@ -10,7 +10,7 @@ namespace Spryker\Zed\Configuration\Communication\Loader;
 interface ConfigurationSchemaMetadataExtractorInterface
 {
     /**
-     * Extracts per-group metadata (name, description, order, status) for a given feature tab.
+     * Extracts per-group metadata (name, description, order, status, toggle_all, layout, section) for a given feature tab.
      *
      * @return array<string, array<string, mixed>>
      */

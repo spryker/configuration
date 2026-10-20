@@ -44,6 +44,7 @@ class ConfigurationManagement {
         this.#moveScopeSelectors();
         this.#buildDependencyMaps();
         this.#evaluateAllDependencies();
+        this.#syncAllGroupStates();
 
         if (this.#readOnly) {
             this.#bindReadOnlyEvents();
@@ -418,6 +419,14 @@ class ConfigurationManagement {
     #bindEvents() {
         // Delegate input changes to the document instead of binding per-element listeners.
         document.addEventListener('change', (event) => {
+            const groupToggle = event.target.closest('.js-group-toggle-all');
+
+            if (groupToggle) {
+                this.#handleGroupToggleAll(groupToggle);
+
+                return;
+            }
+
             const input = event.target.closest('.config-input');
 
             if (!input) {
@@ -431,6 +440,7 @@ class ConfigurationManagement {
             }
 
             this.#handleInputChange(input);
+            this.#syncAllGroupStates();
         });
 
         document.addEventListener('input', (event) => {
@@ -476,6 +486,76 @@ class ConfigurationManagement {
 
     #getSettingKey(input) {
         return input.closest('.setting-row')?.dataset.settingKey;
+    }
+
+    #handleGroupToggleAll(groupToggle) {
+        const group = groupToggle.closest('.js-setting-group');
+        const shouldEnableAll = groupToggle.checked;
+
+        this.#getAvailableBooleanToggles(group).forEach((input) => {
+            const isAlreadyInTargetState = input.checked === shouldEnableAll;
+
+            if (input.disabled || isAlreadyInTargetState) {
+                return;
+            }
+
+            input.checked = shouldEnableAll;
+            this.#handleInputChange(input);
+        });
+
+        this.#syncAllGroupStates();
+    }
+
+    // Settings hidden by an unmet dependency are not offered to the admin, so the group toggle must neither count nor change them.
+    #getAvailableBooleanToggles(group) {
+        return Array.from(group.querySelectorAll('.js-boolean-toggle')).filter((input) => {
+            const isHiddenByDependency = this.#visibilityCache.get(this.#getSettingKey(input)) === false;
+
+            return !isHiddenByDependency;
+        });
+    }
+
+    #syncAllGroupStates() {
+        document.querySelectorAll('.js-setting-group').forEach((group) => this.#syncGroupState(group));
+    }
+
+    // The group toggle and summary are not stored: both are derived from the boolean settings of the group.
+    #syncGroupState(group) {
+        if (!group) {
+            return;
+        }
+
+        const settingToggles = this.#getAvailableBooleanToggles(group);
+        const enabledCount = settingToggles.filter((input) => input.checked).length;
+
+        this.#syncGroupToggle(group, enabledCount, settingToggles.length);
+        this.#syncGroupSummary(group, enabledCount, settingToggles.length);
+    }
+
+    #syncGroupToggle(group, enabledCount, totalCount) {
+        const groupToggle = group.querySelector('.js-group-toggle-all');
+
+        if (!groupToggle) {
+            return;
+        }
+
+        const areAllEnabled = totalCount > 0 && enabledCount === totalCount;
+        const areSomeEnabled = enabledCount > 0 && !areAllEnabled;
+
+        groupToggle.checked = areAllEnabled;
+        groupToggle.indeterminate = areSomeEnabled;
+    }
+
+    #syncGroupSummary(group, enabledCount, totalCount) {
+        const groupSummary = group.querySelector('.js-group-summary');
+
+        if (!groupSummary) {
+            return;
+        }
+
+        groupSummary.textContent = groupSummary.dataset.summaryTemplate
+            .replace('%enabled%', enabledCount)
+            .replace('%total%', totalCount);
     }
 
     #handleInputChange(input) {
@@ -645,6 +725,7 @@ class ConfigurationManagement {
 
         this.#updateUseDefaultUI(settingRow, false);
         this.#evaluateDependenciesForSetting(settingKey);
+        this.#syncAllGroupStates();
         this.#updateSaveBar();
     }
 
@@ -734,6 +815,7 @@ class ConfigurationManagement {
             }
 
             cached.row.classList.add('is-invalid');
+            this.#expandGroup(cached.row.closest('.js-setting-group'));
 
             const errorElement = cached.row.querySelector('.invalid-feedback');
             errorElement.textContent = message;
@@ -796,6 +878,7 @@ class ConfigurationManagement {
         });
 
         this.#evaluateAllDependencies();
+        this.#syncAllGroupStates();
         this.#updateSaveBar();
     }
 
@@ -904,7 +987,25 @@ class ConfigurationManagement {
             );
 
             group.style.display = hasVisibleRow ? '' : 'none';
+
+            if (term && hasVisibleRow) {
+                this.#expandGroup(group);
+            }
         });
+    }
+
+    #expandGroup(group) {
+        const groupBody = group.querySelector('.js-group-body');
+
+        if (!groupBody) {
+            return;
+        }
+
+        groupBody.classList.add('show');
+
+        const collapseToggle = group.querySelector('.js-group-collapse-toggle');
+        collapseToggle?.classList.remove('collapsed');
+        collapseToggle?.setAttribute('aria-expanded', 'true');
     }
 
     #searchSidebar(term) {

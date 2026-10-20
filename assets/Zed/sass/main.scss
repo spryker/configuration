@@ -121,6 +121,21 @@ $medium-screen-width: 768px;
     margin-bottom: 50px;
 }
 
+.setting-section-header {
+    margin-bottom: 16px;
+}
+
+.setting-section-title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.setting-section-description {
+    margin: 4px 0 0;
+    color: var(--bs-secondary-color);
+}
+
 .group-title {
     margin: 0;
     font-size: 17px;
@@ -129,6 +144,115 @@ $medium-screen-width: 768px;
 
 .group-description {
     margin: 0;
+}
+
+.setting-group--compact {
+    margin-bottom: 16px;
+
+    .group-description {
+        margin-top: 4px;
+        padding-left: 32px;
+    }
+
+    .card-body {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        column-gap: 32px;
+    }
+
+    .setting-row {
+        padding: 8px;
+        border-radius: 6px;
+
+        &:hover {
+            background-color: var(--ins-light-bg-subtle);
+        }
+
+        // Checkbox first, label right next to it: in a grid a right-aligned control reads as part of the neighbouring cell.
+        &.boolean-row {
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+        }
+    }
+
+    .setting-row__item-header {
+        flex-wrap: nowrap;
+        gap: 6px;
+        margin-bottom: 0;
+        font-weight: 400;
+    }
+
+    .setting-row__item-label {
+        overflow: hidden;
+        margin: 0;
+        font-weight: inherit;
+        text-overflow: ellipsis;
+        text-transform: none;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .setting-row__item-info,
+    .use-default-link {
+        flex-shrink: 0;
+    }
+
+    .form-check-input {
+        flex-shrink: 0;
+        margin: 0;
+        cursor: pointer;
+
+        &:disabled {
+            cursor: not-allowed;
+        }
+    }
+
+    .group-toggle-all {
+        width: 1.25em;
+        height: 1.25em;
+    }
+}
+
+.group-title--collapsible {
+    flex-grow: 1;
+    min-width: 1px;
+}
+
+.group-collapse-toggle {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    font: inherit;
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    text-align: start;
+
+    &.collapsed .group-collapse-toggle__icon {
+        transform: rotate(-90deg);
+    }
+}
+
+.group-collapse-toggle__icon {
+    transition: transform 0.2s;
+}
+
+.group-summary {
+    margin-inline-start: auto;
+    color: var(--ins-secondary-color);
+    font-size: 13px;
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.setting-row__item-info {
+    font-size: 16px;
+    color: var(--ins-secondary-color);
+    cursor: help;
 }
 
 .setting-row {
@@ -200,6 +324,14 @@ $medium-screen-width: 768px;
 
             &::before {
                 transform: translateX(24px);
+            }
+        }
+
+        &:indeterminate + .toggle-slider {
+            background-color: var(--ins-primary-bg-subtle);
+
+            &::before {
+                transform: translateX(12px);
             }
         }
 

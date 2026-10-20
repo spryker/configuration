@@ -20,6 +20,14 @@ class ConfigurationSchemaMetadataExtractor implements ConfigurationSchemaMetadat
 
     protected const string NODE_KEY_STATUS = 'status';
 
+    protected const string NODE_KEY_TOGGLE_ALL = 'toggle_all';
+
+    protected const string NODE_KEY_LAYOUT = 'layout';
+
+    protected const string NODE_KEY_SECTION = 'section';
+
+    protected const string NODE_KEY_KEY = 'key';
+
     public function __construct(
         protected ConfigurationFacadeInterface $configurationFacade,
     ) {
@@ -36,6 +44,7 @@ class ConfigurationSchemaMetadataExtractor implements ConfigurationSchemaMetadat
             return [];
         }
 
+        $sectionsByKey = $this->indexSectionsByKey($tab);
         $groupMetadata = [];
 
         foreach ($tab[ConfigurationSchemaConstants::SCHEMA_KEY_GROUPS] ?? [] as $group) {
@@ -50,6 +59,9 @@ class ConfigurationSchemaMetadataExtractor implements ConfigurationSchemaMetadat
                 static::NODE_KEY_DESCRIPTION => $group[ConfigurationSchemaConstants::SCHEMA_KEY_DESCRIPTION] ?? null,
                 static::NODE_KEY_ORDER => $group[ConfigurationSchemaConstants::SCHEMA_KEY_ORDER] ?? 0,
                 static::NODE_KEY_STATUS => $group[ConfigurationSchemaConstants::SCHEMA_KEY_STATUS] ?? null,
+                static::NODE_KEY_TOGGLE_ALL => $group[ConfigurationSchemaConstants::SCHEMA_KEY_TOGGLE_ALL] ?? false,
+                static::NODE_KEY_LAYOUT => $group[ConfigurationSchemaConstants::SCHEMA_KEY_LAYOUT] ?? null,
+                static::NODE_KEY_SECTION => $this->findGroupSection($group, $sectionsByKey),
             ];
         }
 
@@ -75,6 +87,49 @@ class ConfigurationSchemaMetadataExtractor implements ConfigurationSchemaMetadat
         }
 
         return $overrides;
+    }
+
+    /**
+     * @param array<mixed> $tab
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    protected function indexSectionsByKey(array $tab): array
+    {
+        $sectionsByKey = [];
+
+        foreach ($tab[ConfigurationSchemaConstants::SCHEMA_KEY_SECTIONS] ?? [] as $section) {
+            $sectionKey = $section[ConfigurationSchemaConstants::SCHEMA_KEY_KEY] ?? null;
+
+            if ($sectionKey === null) {
+                continue;
+            }
+
+            $sectionsByKey[$sectionKey] = [
+                static::NODE_KEY_KEY => $sectionKey,
+                static::NODE_KEY_NAME => $section[ConfigurationSchemaConstants::SCHEMA_KEY_NAME] ?? $this->formatKey($sectionKey),
+                static::NODE_KEY_DESCRIPTION => $section[ConfigurationSchemaConstants::SCHEMA_KEY_DESCRIPTION] ?? null,
+            ];
+        }
+
+        return $sectionsByKey;
+    }
+
+    /**
+     * @param array<mixed> $group
+     * @param array<string, array<string, string|null>> $sectionsByKey
+     *
+     * @return array<string, string|null>|null
+     */
+    protected function findGroupSection(array $group, array $sectionsByKey): ?array
+    {
+        $sectionKey = $group[ConfigurationSchemaConstants::SCHEMA_KEY_SECTION] ?? null;
+
+        if ($sectionKey === null) {
+            return null;
+        }
+
+        return $sectionsByKey[$sectionKey] ?? null;
     }
 
     protected function formatKey(string $key): string

@@ -42,3 +42,6 @@ configuration.status.early_access.label,"Frühzeitiger Zugang"
 configuration.status.early_access.tooltip,"Frühzeitiger Zugang"
 configuration.override.notice,"Überschrieben durch Projekt-Konfiguration: %projectClass%::%projectMethod%"
 configuration.configure,Konfigurieren
+"Turn all settings in this group on or off","Alle Einstellungen dieser Gruppe ein- oder ausschalten"
+"%enabled% of %total% on","%enabled% von %total% aktiv"
+"Show or hide settings","Einstellungen ein- oder ausblenden"

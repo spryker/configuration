@@ -242,6 +242,7 @@
 
     <transfer name="FileSystemQuery">
         <property name="fileSystemName" type="string"/>
+        <property name="path" type="string"/>
     </transfer>
 
     <transfer name="HtmlSanitizerConfig" strict="true">
@@ -266,6 +267,7 @@
     </transfer>
 
     <transfer name="AuditLoggerConfigCriteria" strict="true">
+        <property name="channelName" type="string"/>
     </transfer>
 
     <transfer name="DataImporterConfiguration">
@@ -275,6 +277,9 @@
     </transfer>
 
     <transfer name="DataImporterDataSourceConfiguration">
+        <property name="importType" type="string"/>
+        <property name="moduleName" type="string"/>
+        <property name="fileName" type="string"/>
     </transfer>
 
 </transfers>
