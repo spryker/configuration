@@ -56,11 +56,12 @@ class ExportConfigurationConsoleTest extends Unit
         ]];
 
         // Act
-        $console->writeFileForTest($file, $values);
+        $exitCode = $console->writeFileForTest($file, $values);
 
         // Assert
         $written = json_decode((string)file_get_contents($file), true);
         unlink($file);
+        $this->assertSame(ExportConfigurationConsoleStub::CODE_SUCCESS, $exitCode);
         $this->assertSame($values, $written['values']);
     }
 

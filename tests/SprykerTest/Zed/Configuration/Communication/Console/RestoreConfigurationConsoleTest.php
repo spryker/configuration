@@ -9,6 +9,7 @@ namespace SprykerTest\Zed\Configuration\Communication\Console;
 
 use Codeception\Test\Unit;
 use Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer;
+use RuntimeException;
 use Spryker\Service\UtilEncoding\UtilEncodingServiceInterface;
 use Spryker\Shared\Configuration\ConfigurationConstants;
 use Spryker\Zed\Configuration\Business\ConfigurationFacade;
@@ -104,7 +105,65 @@ class RestoreConfigurationConsoleTest extends Unit
         // Assert
         unlink($file);
         $this->assertSame(0, $restoredCount);
+        $this->assertSame(1, $console->getFailedCountForTest());
         $this->assertStringContainsString('not readable as an export', $console->getOutputForTest());
+    }
+
+    public function testRestoreFileCountsARejectedSaveAsFailed(): void
+    {
+        // Arrange
+        $file = $this->givenExportFile([
+            $this->createExportedValue(static::SETTING_KEY_MEASUREMENT_ID, ConfigurationConstants::SCOPE_GLOBAL, '', 'G-GLOBAL'),
+        ]);
+        $console = $this->createConsole(false);
+
+        // Act
+        $restoredCount = $console->restoreFileForTest($file, [static::SETTING_KEY_MEASUREMENT_ID]);
+
+        // Assert
+        unlink($file);
+        $this->assertSame(0, $restoredCount);
+        $this->assertSame(1, $console->getFailedCountForTest());
+    }
+
+    public function testRestoreFileDoesNotCountAnExportWithoutTheNamedSettingsAsFailed(): void
+    {
+        // Arrange
+        $file = $this->givenExportFile([
+            $this->createExportedValue(static::SETTING_KEY_COLOR, ConfigurationConstants::SCOPE_GLOBAL, '', '#ff0000'),
+        ]);
+        $console = $this->createConsole();
+
+        // Act
+        $restoredCount = $console->restoreFileForTest($file, [static::SETTING_KEY_MEASUREMENT_ID]);
+
+        // Assert
+        unlink($file);
+        $this->assertSame(0, $restoredCount);
+        $this->assertSame(0, $console->getFailedCountForTest());
+    }
+
+    public function testRestoreFileNeverPrintsTheValueOfAFailedSave(): void
+    {
+        // Arrange
+        $value = 'a-value-that-must-never-be-printed';
+        $file = $this->givenExportFile([
+            $this->createExportedValue(static::SETTING_KEY_MEASUREMENT_ID, ConfigurationConstants::SCOPE_GLOBAL, '', $value),
+        ]);
+        $configurationFacadeMock = $this->createMock(ConfigurationFacade::class);
+        $configurationFacadeMock->method('saveConfigurationValues')
+            ->willThrowException(new RuntimeException(sprintf('Invalid value "%s".', $value)));
+        $console = new RestoreConfigurationConsoleStub($configurationFacadeMock, $this->createFactoryMock());
+
+        // Act
+        $console->restoreFileForTest($file, [static::SETTING_KEY_MEASUREMENT_ID]);
+
+        // Assert
+        unlink($file);
+        $output = $console->getOutputForTest();
+        $this->assertSame(1, $console->getFailedCountForTest());
+        $this->assertStringContainsString(static::SETTING_KEY_MEASUREMENT_ID, $output);
+        $this->assertStringNotContainsString($value, $output);
     }
 
     /**
@@ -138,6 +197,11 @@ class RestoreConfigurationConsoleTest extends Unit
             (new ConfigurationValueCollectionResponseTransfer())->setIsSuccess($isSaveSuccessful),
         );
 
+        return new RestoreConfigurationConsoleStub($configurationFacadeMock, $this->createFactoryMock());
+    }
+
+    protected function createFactoryMock(): ConfigurationCommunicationFactory
+    {
         $utilEncodingServiceMock = $this->createMock(UtilEncodingServiceInterface::class);
         $utilEncodingServiceMock->method('decodeJson')->willReturnCallback(
             static fn (string $json) => json_decode($json, true),
@@ -146,6 +210,6 @@ class RestoreConfigurationConsoleTest extends Unit
         $configurationCommunicationFactoryMock = $this->createMock(ConfigurationCommunicationFactory::class);
         $configurationCommunicationFactoryMock->method('getUtilEncodingService')->willReturn($utilEncodingServiceMock);
 
-        return new RestoreConfigurationConsoleStub($configurationFacadeMock, $configurationCommunicationFactoryMock);
+        return $configurationCommunicationFactoryMock;
     }
 }

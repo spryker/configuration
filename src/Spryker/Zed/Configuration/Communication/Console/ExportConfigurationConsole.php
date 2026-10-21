@@ -7,6 +7,7 @@
 
 namespace Spryker\Zed\Configuration\Communication\Console;
 
+use PDOException;
 use Spryker\Shared\Configuration\ConfigurationExportFileFormat;
 use Spryker\Zed\Kernel\BundleConfigResolverAwareTrait;
 use Spryker\Zed\Kernel\Communication\Console\Console;
@@ -18,6 +19,8 @@ use Throwable;
 /**
  * Writes the listed configuration values to a file.
  * Secret values are not exported.
+ *
+ * Exits with an error code when the export cannot be written. Finding nothing to export is not an error.
  *
  * @method \Spryker\Zed\Configuration\ConfigurationConfig getConfig()
  * @method \Spryker\Zed\Configuration\Communication\ConfigurationCommunicationFactory getFactory()
@@ -35,6 +38,13 @@ class ExportConfigurationConsole extends Console
     protected const int EXPORT_FILE_PERMISSIONS = 0600;
 
     protected const int EXPORT_DIRECTORY_PERMISSIONS = 0700;
+
+    /**
+     * `42S02`: base table not found (MariaDB, MySQL); `42P01`: undefined table (PostgreSQL).
+     *
+     * @var array<string>
+     */
+    protected const array SQLSTATES_TABLE_NOT_FOUND = ['42S02', '42P01'];
 
     protected const string KEY_VALUES = ConfigurationExportFileFormat::KEY_VALUES;
 
@@ -63,12 +73,11 @@ class ExportConfigurationConsole extends Console
             return $this->executeExport($input);
         } catch (Throwable $exception) {
             $this->error(sprintf(
-                'Nothing was exported, because %s: %s. The command still exits successfully.',
+                'Nothing was exported, because of %s. Details are not printed, because they can contain a value.',
                 get_class($exception),
-                $exception->getMessage(),
             ));
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
     }
 
@@ -86,13 +95,13 @@ class ExportConfigurationConsole extends Console
         $settingsMap = $this->getFactory()->createConfigurationSchemaReader()->getSettingsMap();
 
         if ($settingsMap === []) {
-            $this->warning(
+            $this->error(
                 'The configuration schema holds no settings, so a secret setting cannot be told apart from '
                 . 'an ordinary one and its stored value would land in the export file. Nothing was exported. '
-                . 'The command still exits successfully; run "configuration:sync" before this command.',
+                . 'Run "configuration:sync" before this command.',
             );
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         $secretSettingKeys = $this->getFactory()
@@ -102,15 +111,7 @@ class ExportConfigurationConsole extends Console
         try {
             $values = $this->findExportableValues($settingKeys, $secretSettingKeys);
         } catch (Throwable $exception) {
-            $this->error(sprintf(
-                'Could not read the stored configuration values (%s: %s), so nothing was exported. On a first '
-                . 'install this is expected, because the table does not exist yet. The command still exits '
-                . 'successfully.',
-                get_class($exception),
-                $exception->getMessage(),
-            ));
-
-            return static::CODE_SUCCESS;
+            return $this->reportUnreadableValues($exception);
         }
 
         if ($values === []) {
@@ -122,10 +123,47 @@ class ExportConfigurationConsole extends Console
         $file = $this->findExportFile();
 
         if ($file === null) {
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         return $this->writeFile($file, $values);
+    }
+
+    protected function reportUnreadableValues(Throwable $exception): int
+    {
+        if ($this->isMissingTableException($exception)) {
+            $this->info(
+                'The configuration values table does not exist yet, so there is nothing to export. '
+                . 'This is expected on a first install.',
+            );
+
+            // Not a failure: a destructive deployment exports before the tables exist on its first run.
+            return static::CODE_SUCCESS;
+        }
+
+        $this->error(sprintf(
+            'Could not read the stored configuration values (%s: %s), so nothing was exported.',
+            get_class($exception),
+            $exception->getMessage(),
+        ));
+
+        return static::CODE_ERROR;
+    }
+
+    protected function isMissingTableException(Throwable $exception): bool
+    {
+        $currentException = $exception;
+
+        // Propel wraps the database error, so its SQLSTATE sits further down the chain.
+        while ($currentException !== null) {
+            if ($currentException instanceof PDOException && in_array((string)$currentException->getCode(), static::SQLSTATES_TABLE_NOT_FOUND, true)) {
+                return true;
+            }
+
+            $currentException = $currentException->getPrevious();
+        }
+
+        return false;
     }
 
     protected function findExportFile(): ?string
@@ -228,13 +266,13 @@ class ExportConfigurationConsole extends Console
         $configValuesJson = $this->getFactory()->getUtilEncodingService()->encodeJson([static::KEY_VALUES => $values]);
 
         if ($configValuesJson === null) {
-            $this->error('Could not encode the configuration values into JSON; nothing was exported. The command still exits successfully.');
+            $this->error('Could not encode the configuration values into JSON; nothing was exported.');
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         if (!$this->createDirectory($file)) {
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         if (!touch($file) || !chmod($file, static::EXPORT_FILE_PERMISSIONS)) {
@@ -243,12 +281,11 @@ class ExportConfigurationConsole extends Console
             }
 
             $this->error(sprintf(
-                'Could not create file "%s" with restricted permissions; nothing was exported. '
-                . 'The command still exits successfully.',
+                'Could not create file "%s" with restricted permissions; nothing was exported.',
                 $file,
             ));
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         $writtenByteCount = file_put_contents($file, $configValuesJson);
@@ -257,13 +294,13 @@ class ExportConfigurationConsole extends Console
             unlink($file);
             $this->error(sprintf(
                 'Wrote %s of %d bytes into file "%s", so the export would be truncated; it was removed and '
-                . 'nothing was exported. The command still exits successfully.',
+                . 'nothing was exported.',
                 $writtenByteCount === false ? 'none' : (string)$writtenByteCount,
                 strlen($configValuesJson),
                 $file,
             ));
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         $this->success(sprintf('Exported %d configuration value(s) to "%s".', count($values), $file));
@@ -281,7 +318,7 @@ class ExportConfigurationConsole extends Console
 
         if (!mkdir($directory, static::EXPORT_DIRECTORY_PERMISSIONS, true) && !is_dir($directory)) {
             $this->error(sprintf(
-                'Could not create directory "%s"; nothing was exported. The command still exits successfully.',
+                'Could not create directory "%s"; nothing was exported.',
                 $directory,
             ));
 

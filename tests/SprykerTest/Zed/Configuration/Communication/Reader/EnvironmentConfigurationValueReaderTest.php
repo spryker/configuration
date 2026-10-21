@@ -25,74 +25,100 @@ use Spryker\Zed\Configuration\ConfigurationConfig;
  */
 class EnvironmentConfigurationValueReaderTest extends Unit
 {
-    protected const string ENV_VAR_PREFIX = 'configuration:';
-
     protected const string SCOPE_STORE = 'store';
-
-    protected const string SCOPE_LOCALE = 'locale';
 
     protected const string SETTING_KEY = 'integrations:google_analytics:tracking:measurement_id';
 
+    protected const string VARIABLE_NAME = 'GA_MEASUREMENT_ID';
+
     /**
-     * @dataProvider getVariableNames
+     * @dataProvider getMappings
      *
-     * @param array<string, string|null>|null $expected
+     * @param array<string, string>|null $expectedMapping
      */
-    public function testFindConfigurationValueResolvesScopeIdentifierAndSettingKey(string $variableName, ?array $expected): void
+    public function testFindMappingSplitsSettingKeyAndVariableName(string $mapping, ?array $expectedMapping): void
     {
         // Arrange
         $environmentConfigurationValueReader = $this->createReader();
 
         // Act
-        $configurationValueTransfer = $environmentConfigurationValueReader->variableNameToConfigurationValueTransfer($variableName);
+        $mappingParts = $environmentConfigurationValueReader->findMapping($mapping);
 
         // Assert
-        if ($expected === null) {
-            $this->assertNull($configurationValueTransfer, sprintf('Expected "%s" not to resolve.', $variableName));
-
-            return;
-        }
-
-        $this->assertNotNull($configurationValueTransfer, sprintf('Expected "%s" to resolve.', $variableName));
-        $this->assertSame($expected['scope'], $configurationValueTransfer->getScope());
-        $this->assertSame($expected['scopeIdentifier'], $configurationValueTransfer->getScopeIdentifier());
-        $this->assertSame($expected['settingKey'], $configurationValueTransfer->getSettingKey());
+        $this->assertSame($expectedMapping, $mappingParts);
     }
 
     /**
      * @return array<string, array<int, mixed>>
      */
-    public function getVariableNames(): array
+    public function getMappings(): array
+    {
+        $expectedMapping = [
+            EnvironmentConfigurationValueReader::MAPPING_KEY_SETTING_KEY => static::SETTING_KEY,
+            EnvironmentConfigurationValueReader::MAPPING_KEY_VARIABLE_NAME => static::VARIABLE_NAME,
+        ];
+
+        return [
+            'setting key and variable name' => [
+                static::SETTING_KEY . '=' . static::VARIABLE_NAME,
+                $expectedMapping,
+            ],
+            'whitespace around the parts is ignored' => [
+                ' ' . static::SETTING_KEY . ' = ' . static::VARIABLE_NAME . ' ',
+                $expectedMapping,
+            ],
+            'a mapping without a separator does not resolve' => [
+                static::SETTING_KEY,
+                null,
+            ],
+            'a mapping without a variable name does not resolve' => [
+                static::SETTING_KEY . '=',
+                null,
+            ],
+            'a mapping without a setting key does not resolve' => [
+                '=' . static::VARIABLE_NAME,
+                null,
+            ],
+            'a value instead of a variable name does not resolve' => [
+                static::SETTING_KEY . '=G-R9NCW72D85',
+                null,
+            ],
+            'a JSON value instead of a variable name does not resolve' => [
+                static::SETTING_KEY . '={"type":"service_account"}',
+                null,
+            ],
+            'a variable name starting with a digit does not resolve' => [
+                static::SETTING_KEY . '=1GA_MEASUREMENT_ID',
+                null,
+            ],
+        ];
+    }
+
+    /**
+     * @dataProvider getScopes
+     */
+    public function testIsAvailableScopeAcceptsOnlyConfiguredScopes(string $scope, bool $isExpectedAvailable): void
+    {
+        // Arrange
+        $environmentConfigurationValueReader = $this->createReader();
+
+        // Act
+        $isAvailable = $environmentConfigurationValueReader->isAvailableScope($scope);
+
+        // Assert
+        $this->assertSame($isExpectedAvailable, $isAvailable);
+    }
+
+    /**
+     * @return array<string, array<int, mixed>>
+     */
+    public function getScopes(): array
     {
         return [
-            'global scope is named like any other' => [
-                static::ENV_VAR_PREFIX . ConfigurationConstants::SCOPE_GLOBAL . ':' . static::SETTING_KEY,
-                ['scope' => ConfigurationConstants::SCOPE_GLOBAL, 'scopeIdentifier' => null, 'settingKey' => static::SETTING_KEY],
-            ],
-            'store scope keeps its identifier' => [
-                static::ENV_VAR_PREFIX . static::SCOPE_STORE . ':DE:' . static::SETTING_KEY,
-                ['scope' => static::SCOPE_STORE, 'scopeIdentifier' => 'DE', 'settingKey' => static::SETTING_KEY],
-            ],
-            'locale scope keeps its identifier' => [
-                static::ENV_VAR_PREFIX . static::SCOPE_LOCALE . ':de_DE:theme:storefront:colors:main',
-                ['scope' => static::SCOPE_LOCALE, 'scopeIdentifier' => 'de_DE', 'settingKey' => 'theme:storefront:colors:main'],
-            ],
-            'a name with no scope does not resolve' => [
-                static::ENV_VAR_PREFIX . static::SETTING_KEY,
-                null,
-            ],
-            'scoped name without a setting key does not resolve' => [
-                static::ENV_VAR_PREFIX . static::SCOPE_STORE . ':DE',
-                null,
-            ],
-            'prefix alone does not resolve' => [
-                static::ENV_VAR_PREFIX,
-                null,
-            ],
-            'a name outside the namespace does not resolve' => [
-                'SPRYKER_UNRELATED_VARIABLE',
-                null,
-            ],
+            'global scope' => [ConfigurationConstants::SCOPE_GLOBAL, true],
+            'configured store scope' => [static::SCOPE_STORE, true],
+            'unknown scope' => ['website', false],
+            'scope names are case-sensitive' => ['STORE', false],
         ];
     }
 
@@ -100,12 +126,11 @@ class EnvironmentConfigurationValueReaderTest extends Unit
     {
         // Arrange
         $environmentConfigurationValueReader = $this->createReader();
-        $variableName = static::ENV_VAR_PREFIX . ConfigurationConstants::SCOPE_GLOBAL . ':' . static::SETTING_KEY;
-        putenv(sprintf('%s=%s', $variableName, 'G-R9NCW72D85'));
+        putenv(sprintf('%s=%s', static::VARIABLE_NAME, 'G-R9NCW72D85'));
 
         // Act
-        $value = $environmentConfigurationValueReader->findEnvironmentValue($variableName);
-        putenv($variableName);
+        $value = $environmentConfigurationValueReader->findEnvironmentValue(static::VARIABLE_NAME);
+        putenv(static::VARIABLE_NAME);
 
         // Assert
         $this->assertSame('G-R9NCW72D85', $value);
@@ -115,7 +140,7 @@ class EnvironmentConfigurationValueReaderTest extends Unit
     {
         // Arrange
         $environmentConfigurationValueReader = $this->createReader();
-        $variableName = static::ENV_VAR_PREFIX . 'integrations:empty:secret_key';
+        $variableName = 'CONFIGURATION_TEST_EMPTY_SECRET_KEY';
         putenv(sprintf('%s=', $variableName));
 
         // Act
@@ -132,22 +157,10 @@ class EnvironmentConfigurationValueReaderTest extends Unit
         $environmentConfigurationValueReader = $this->createReader();
 
         // Act
-        $value = $environmentConfigurationValueReader->findEnvironmentValue(static::ENV_VAR_PREFIX . 'catalog:absent');
+        $value = $environmentConfigurationValueReader->findEnvironmentValue('CONFIGURATION_TEST_ABSENT');
 
         // Assert
         $this->assertNull($value);
-    }
-
-    public function testGetEnvironmentVariablePrefixIsTheConfigurationNamespace(): void
-    {
-        // Arrange
-        $environmentConfigurationValueReader = $this->createReader();
-
-        // Act
-        $prefix = $environmentConfigurationValueReader->getEnvironmentVariablePrefix();
-
-        // Assert
-        $this->assertSame(static::ENV_VAR_PREFIX, $prefix);
     }
 
     protected function createReader(): EnvironmentConfigurationValueReader
@@ -156,7 +169,6 @@ class EnvironmentConfigurationValueReaderTest extends Unit
         $configurationConfigMock->method('getAvailableScopes')->willReturn([
             ConfigurationConstants::SCOPE_GLOBAL,
             static::SCOPE_STORE,
-            static::SCOPE_LOCALE,
         ]);
 
         return new EnvironmentConfigurationValueReader($configurationConfigMock);

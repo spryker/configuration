@@ -176,8 +176,8 @@ class ConfigurationConfig extends AbstractBundleConfig
     /**
      * Specification:
      * - Returns the path of the file `configuration:export` writes and `configuration:restore` reads back.
-     * - Delegates to `ConfigurationConfig::getExportFile()` in the Shared layer, which throws until the
-     *   path is redefined on project level.
+     * - Delegates to `ConfigurationConfig::getExportFile()` in the Shared layer, which defaults to
+     *   `data/export/configuration-values.json` in the application root.
      *
      * @api
      *

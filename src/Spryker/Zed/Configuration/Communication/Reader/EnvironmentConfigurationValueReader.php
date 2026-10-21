@@ -7,21 +7,20 @@
 
 namespace Spryker\Zed\Configuration\Communication\Reader;
 
-use Generated\Shared\Transfer\ConfigurationValueTransfer;
-use Spryker\Shared\Configuration\ConfigurationConstants;
 use Spryker\Zed\Configuration\ConfigurationConfig;
 
 class EnvironmentConfigurationValueReader implements EnvironmentConfigurationValueReaderInterface
 {
-    public const string ENVIRONMENT_VARIABLE_PREFIX = 'configuration:';
+    public const string MAPPING_SEPARATOR = '=';
+
+    public const string MAPPING_KEY_SETTING_KEY = 'settingKey';
+
+    public const string MAPPING_KEY_VARIABLE_NAME = 'variableName';
+
+    protected const string VARIABLE_NAME_PATTERN = '/^[A-Za-z_][A-Za-z0-9_]*$/';
 
     public function __construct(protected ConfigurationConfig $configurationConfig)
     {
-    }
-
-    public function getEnvironmentVariablePrefix(): string
-    {
-        return static::ENVIRONMENT_VARIABLE_PREFIX;
     }
 
     public function findEnvironmentValue(string $variableName): ?string
@@ -35,55 +34,32 @@ class EnvironmentConfigurationValueReader implements EnvironmentConfigurationVal
         return $value;
     }
 
-    public function variableNameToConfigurationValueTransfer(string $variableName): ?ConfigurationValueTransfer
+    /**
+     * @return array<string, string>|null
+     */
+    public function findMapping(string $mapping): ?array
     {
-        if (!str_starts_with($variableName, static::ENVIRONMENT_VARIABLE_PREFIX)) {
+        $separatorPosition = strpos($mapping, static::MAPPING_SEPARATOR);
+
+        if ($separatorPosition === false) {
             return null;
         }
 
-        $variableNameWithoutPrefix = substr($variableName, strlen(static::ENVIRONMENT_VARIABLE_PREFIX));
+        $settingKey = trim(substr($mapping, 0, $separatorPosition));
+        $variableName = trim(substr($mapping, $separatorPosition + strlen(static::MAPPING_SEPARATOR)));
 
-        foreach ($this->configurationConfig->getAvailableScopes() as $scope) {
-            $scopePrefix = $scope . ':';
-
-            if (!str_starts_with($variableNameWithoutPrefix, $scopePrefix)) {
-                continue;
-            }
-
-            return $this->createConfigurationValue($scope, substr($variableNameWithoutPrefix, strlen($scopePrefix)));
+        if ($settingKey === '' || preg_match(static::VARIABLE_NAME_PATTERN, $variableName) !== 1) {
+            return null;
         }
 
-        return null;
+        return [
+            static::MAPPING_KEY_SETTING_KEY => $settingKey,
+            static::MAPPING_KEY_VARIABLE_NAME => $variableName,
+        ];
     }
 
-    protected function createConfigurationValue(string $scope, string $scopeRemainder): ?ConfigurationValueTransfer
+    public function isAvailableScope(string $scope): bool
     {
-        if ($scope === ConfigurationConstants::SCOPE_GLOBAL) {
-            return $scopeRemainder === ''
-                ? null
-                : $this->createConfigurationValueTransfer($scope, null, $scopeRemainder);
-        }
-
-        $separatorPosition = strpos($scopeRemainder, ':');
-
-        if ($separatorPosition === false || $separatorPosition === 0) {
-            return null;
-        }
-
-        $settingKey = substr($scopeRemainder, $separatorPosition + 1);
-
-        if ($settingKey === '') {
-            return null;
-        }
-
-        return $this->createConfigurationValueTransfer($scope, substr($scopeRemainder, 0, $separatorPosition), $settingKey);
-    }
-
-    protected function createConfigurationValueTransfer(string $scope, ?string $scopeIdentifier, string $settingKey): ConfigurationValueTransfer
-    {
-        return (new ConfigurationValueTransfer())
-            ->setScope($scope)
-            ->setScopeIdentifier($scopeIdentifier)
-            ->setSettingKey($settingKey);
+        return in_array($scope, $this->configurationConfig->getAvailableScopes(), true);
     }
 }

@@ -8,6 +8,7 @@
 namespace Spryker\Zed\Configuration\Communication\Console;
 
 use Generated\Shared\Transfer\ConfigurationValueCollectionRequestTransfer;
+use Generated\Shared\Transfer\ConfigurationValueCollectionResponseTransfer;
 use Generated\Shared\Transfer\ConfigurationValueTransfer;
 use Spryker\Shared\Configuration\ConfigurationExportFileFormat;
 use Spryker\Zed\Kernel\BundleConfigResolverAwareTrait;
@@ -19,6 +20,9 @@ use Throwable;
 
 /**
  * Saves the configuration values from an exported file to the database.
+ *
+ * Exits with an error code when a value cannot be restored. A missing export file is not an error: a first
+ * deployment has none.
  *
  * @method \Spryker\Zed\Configuration\Business\ConfigurationFacadeInterface getFacade()
  * @method \Spryker\Zed\Configuration\ConfigurationConfig getConfig()
@@ -58,12 +62,11 @@ class RestoreConfigurationConsole extends Console
             return $this->executeRestore($input);
         } catch (Throwable $exception) {
             $this->error(sprintf(
-                'Nothing was restored, because %s: %s. The command still exits successfully.',
+                'Nothing was restored, because of %s. Details are not printed, because they can contain a value.',
                 get_class($exception),
-                $exception->getMessage(),
             ));
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
     }
 
@@ -83,11 +86,10 @@ class RestoreConfigurationConsole extends Console
         if ($settingsMap === []) {
             $this->error(
                 'The configuration schema holds no settings, so it is unknown which of them still exist or are '
-                . 'secret. Nothing was restored. The command still exits successfully; run "configuration:sync" '
-                . 'before this command.',
+                . 'secret. Nothing was restored. Run "configuration:sync" before this command.',
             );
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         $settingKeys = $this->filterRestorableSettingKeys($settingKeys, $settingsMap);
@@ -101,7 +103,7 @@ class RestoreConfigurationConsole extends Console
         $file = $this->findExportFile();
 
         if ($file === null) {
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         if (!file_exists($file)) {
@@ -112,24 +114,29 @@ class RestoreConfigurationConsole extends Console
 
         if (!is_readable($file)) {
             $this->error(sprintf(
-                'The export at "%s" exists but the current user cannot read it; nothing was restored. '
-                . 'The command still exits successfully.',
+                'The export at "%s" exists but the current user cannot read it; nothing was restored.',
                 $file,
             ));
 
-            return static::CODE_SUCCESS;
+            return static::CODE_ERROR;
         }
 
         $restoredCount = $this->restoreFile($file, $settingKeys);
 
-        if ($restoredCount === 0 || $this->failedCount > 0) {
-            $this->warning(sprintf(
+        if ($this->failedCount > 0) {
+            $this->error(sprintf(
                 'Restored %d value(s) and could not restore %d, so "%s" is kept. Fix the cause reported above '
                 . 'and run this command again.',
                 $restoredCount,
                 $this->failedCount,
                 $file,
             ));
+
+            return static::CODE_ERROR;
+        }
+
+        if ($restoredCount === 0) {
+            $this->info(sprintf('Restored no values, so "%s" is kept.', $file));
 
             return static::CODE_SUCCESS;
         }
@@ -205,11 +212,13 @@ class RestoreConfigurationConsole extends Console
      */
     protected function restoreFile(string $file, array $settingKeys): int
     {
+        $this->failedCount = 0;
         $configValuesJson = file_get_contents($file);
 
         if ($configValuesJson === false) {
+            $this->failedCount++;
             $this->error(sprintf(
-                'Could not read "%s"; nothing was restored. The command still exits successfully.',
+                'Could not read "%s"; nothing was restored.',
                 $file,
             ));
 
@@ -220,8 +229,9 @@ class RestoreConfigurationConsole extends Console
         $values = is_array($export) ? ($export[static::KEY_VALUES] ?? null) : null;
 
         if (!is_array($values)) {
+            $this->failedCount++;
             $this->error(sprintf(
-                '"%s" is not readable as an export; nothing was restored. The command still exits successfully.',
+                '"%s" is not readable as an export; nothing was restored.',
                 $file,
             ));
 
@@ -231,7 +241,6 @@ class RestoreConfigurationConsole extends Console
         $restoredCount = 0;
         $skippedCount = 0;
         $settingKeysInExport = [];
-        $this->failedCount = 0;
 
         foreach ($values as $value) {
             if (!is_array($value)) {
@@ -323,30 +332,38 @@ class RestoreConfigurationConsole extends Console
         try {
             $responseTransfer = $this->getFacade()->saveConfigurationValues($requestTransfer);
         } catch (Throwable $exception) {
-            $this->warning(sprintf(
-                'Skipping "%s": %s: %s.',
-                $settingKey,
-                get_class($exception),
-                $exception->getMessage(),
-            ));
+            $this->reportFailedRestore($settingKey, get_class($exception));
 
             return false;
         }
 
         if ($responseTransfer->getIsSuccess() !== true) {
-            if (count($responseTransfer->getErrors()) === 0) {
-                $this->warning(sprintf('Skipping "%s": the save was rejected without a stated reason.', $settingKey));
-
-                return false;
-            }
-
-            foreach ($responseTransfer->getErrors() as $configurationErrorTransfer) {
-                $this->warning(sprintf('Skipping "%s": %s', $settingKey, $configurationErrorTransfer->getMessage()));
-            }
+            $this->reportFailedRestore($settingKey, $this->formatRejectionReason($responseTransfer));
 
             return false;
         }
 
         return true;
+    }
+
+    protected function reportFailedRestore(string $settingKey, string $reason): void
+    {
+        // The exception or validation message is not printed: it can quote the value.
+        $this->error(sprintf(
+            'Could not restore "%s": %s. Details are not printed, because they can contain the value.',
+            $settingKey,
+            $reason,
+        ));
+    }
+
+    protected function formatRejectionReason(ConfigurationValueCollectionResponseTransfer $responseTransfer): string
+    {
+        $errorCount = count($responseTransfer->getErrors());
+
+        if ($errorCount === 0) {
+            return 'the save was rejected without a stated reason';
+        }
+
+        return sprintf('the save was rejected with %d validation error(s)', $errorCount);
     }
 }

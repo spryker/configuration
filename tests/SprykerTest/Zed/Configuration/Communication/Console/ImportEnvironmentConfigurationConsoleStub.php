@@ -35,16 +35,28 @@ class ImportEnvironmentConfigurationConsoleStub extends ImportEnvironmentConfigu
     }
 
     /**
+     * @param array<string> $mappings
+     * @param array<string, mixed> $settingsMap
      * @param array<string> $secretSettingKeys
      */
-    public function importEnvironmentVariableForTest(string $variableName, array $secretSettingKeys): void
-    {
-        $this->importEnvironmentVariable($variableName, $secretSettingKeys);
+    public function importMappingsForTest(
+        array $mappings,
+        string $scope,
+        ?string $scopeIdentifier,
+        array $settingsMap,
+        array $secretSettingKeys
+    ): int {
+        return $this->importMappings($mappings, $scope, $scopeIdentifier, $settingsMap, $secretSettingKeys);
     }
 
-    public function saveConfigurationValueForTest(ConfigurationValueTransfer $configurationValueTransfer, bool $isSecret): void
+    public function findScopeErrorForTest(string $scope, ?string $scopeIdentifier): ?string
     {
-        $this->saveConfigurationValue($configurationValueTransfer, $isSecret);
+        return $this->findScopeError($scope, $scopeIdentifier);
+    }
+
+    public function saveConfigurationValueForTest(ConfigurationValueTransfer $configurationValueTransfer, bool $isSecret): bool
+    {
+        return $this->saveConfigurationValue($configurationValueTransfer, $isSecret);
     }
 
     protected function getFactory(): AbstractCommunicationFactory

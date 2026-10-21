@@ -40,6 +40,11 @@ class RestoreConfigurationConsoleStub extends RestoreConfigurationConsole
         return $this->restoreFile($file, $settingKeys);
     }
 
+    public function getFailedCountForTest(): int
+    {
+        return $this->failedCount;
+    }
+
     protected function getFacade(): AbstractFacade
     {
         return $this->configurationFacade;

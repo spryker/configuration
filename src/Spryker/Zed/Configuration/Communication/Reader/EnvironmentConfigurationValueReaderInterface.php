@@ -7,13 +7,16 @@
 
 namespace Spryker\Zed\Configuration\Communication\Reader;
 
-use Generated\Shared\Transfer\ConfigurationValueTransfer;
-
 interface EnvironmentConfigurationValueReaderInterface
 {
-    public function getEnvironmentVariablePrefix(): string;
-
     public function findEnvironmentValue(string $variableName): ?string;
 
-    public function variableNameToConfigurationValueTransfer(string $variableName): ?ConfigurationValueTransfer;
+    /**
+     * @return array<string, string>|null Keyed by `EnvironmentConfigurationValueReader::MAPPING_KEY_SETTING_KEY`
+     *   and `EnvironmentConfigurationValueReader::MAPPING_KEY_VARIABLE_NAME`; `null` when the mapping is not
+     *   of the form `<setting key>=<VARIABLE>` with a valid variable name.
+     */
+    public function findMapping(string $mapping): ?array;
+
+    public function isAvailableScope(string $scope): bool;
 }
