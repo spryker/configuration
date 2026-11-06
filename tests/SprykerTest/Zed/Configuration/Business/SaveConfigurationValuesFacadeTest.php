@@ -35,6 +35,12 @@ use SprykerTest\Zed\Configuration\ConfigurationBusinessTester;
  */
 class SaveConfigurationValuesFacadeTest extends Unit
 {
+    protected const string KEY_THEME_MAIN_COLOR = 'theme:storefront:colors:background_brand_primary';
+
+    protected const string SCOPE_GLOBAL = 'global';
+
+    protected const string STORED_COLOR = '#a1b2c3';
+
     protected ConfigurationBusinessTester $tester;
 
     public function testSaveConfigurationValuesSuccessfullyPersistsValidValues(): void
@@ -94,6 +100,37 @@ class SaveConfigurationValuesFacadeTest extends Unit
             ->findOne();
 
         $this->assertNull($savedEntity);
+    }
+
+    public function testGivenAStoredColorWhenSaveConfigurationValuesWithAnInvalidHexColorThenTheValueIsRejectedAndTheStoredColorIsKept(): void
+    {
+        // Arrange
+        $facade = $this->createFacade();
+        $this->createConfigurationValueEntity(static::KEY_THEME_MAIN_COLOR, static::SCOPE_GLOBAL, static::STORED_COLOR);
+
+        $configurationValueCollectionRequestTransfer = (new ConfigurationValueCollectionRequestTransfer())
+            ->addConfigurationValue(
+                (new ConfigurationValueTransfer())
+                    ->setSettingKey(static::KEY_THEME_MAIN_COLOR)
+                    ->setScope(static::SCOPE_GLOBAL)
+                    ->setValue('not-a-hex-value'),
+            );
+
+        // Act
+        $configurationValueCollectionResponseTransfer = $facade->saveConfigurationValues($configurationValueCollectionRequestTransfer);
+
+        // Assert
+        $this->assertFalse($configurationValueCollectionResponseTransfer->getIsSuccess());
+        $this->assertSame(0, $configurationValueCollectionResponseTransfer->getSavedCount());
+        $this->assertCount(1, $configurationValueCollectionResponseTransfer->getErrors());
+        $this->assertSame(static::KEY_THEME_MAIN_COLOR, $configurationValueCollectionResponseTransfer->getErrors()[0]->getSettingKey());
+
+        $storedEntity = SpyConfigurationValueQuery::create()
+            ->filterBySettingKey(static::KEY_THEME_MAIN_COLOR)
+            ->filterByScope(static::SCOPE_GLOBAL)
+            ->findOne();
+
+        $this->assertSame(static::STORED_COLOR, $storedEntity->getValue());
     }
 
     public function testSaveConfigurationValuesRejectsBlankRequiredField(): void

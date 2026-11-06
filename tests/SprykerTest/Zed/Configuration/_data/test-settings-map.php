@@ -56,4 +56,18 @@ return [
             ],
         ],
     ],
+    'theme:storefront:colors:background_brand_primary' => [
+        'type' => 'color',
+        'default_value' => '#00bebe',
+        'secret' => false,
+        'storefront' => true,
+        'scopes' => ['global', 'store'],
+        'constraints' => [
+            [
+                'type' => 'regex',
+                'message' => 'Must be a valid hex color (e.g. #00bebe)',
+                'options' => ['pattern' => '^#[0-9A-Fa-f]{6}$'],
+            ],
+        ],
+    ],
 ];

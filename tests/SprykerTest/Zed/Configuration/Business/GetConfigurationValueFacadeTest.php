@@ -34,6 +34,20 @@ use SprykerTest\Zed\Configuration\ConfigurationBusinessTester;
  */
 class GetConfigurationValueFacadeTest extends Unit
 {
+    protected const string KEY_ITEMS_PER_PAGE = 'catalog:general:display:items_per_page';
+
+    protected const string SCOPE_GLOBAL = 'global';
+
+    protected const string SCOPE_STORE = 'store';
+
+    protected const string STORE_WITH_OVERRIDE = 'DE';
+
+    protected const string STORE_WITHOUT_OVERRIDE = 'AT';
+
+    protected const string GLOBAL_ITEMS_PER_PAGE = '30';
+
+    protected const string STORE_ITEMS_PER_PAGE = '60';
+
     protected ConfigurationBusinessTester $tester;
 
     protected function _before(): void
@@ -117,6 +131,36 @@ class GetConfigurationValueFacadeTest extends Unit
         $this->assertSame('36', $result);
     }
 
+    public function testGivenAGlobalValueAndAStoreValueWhenGetConfigurationValueForThatStoreThenTheStoreValueOverridesTheGlobalValue(): void
+    {
+        // Arrange
+        $this->createConfigurationValueEntity(static::KEY_ITEMS_PER_PAGE, static::SCOPE_GLOBAL, static::GLOBAL_ITEMS_PER_PAGE);
+        $this->createConfigurationValueEntity(static::KEY_ITEMS_PER_PAGE, static::SCOPE_STORE, static::STORE_ITEMS_PER_PAGE, static::STORE_WITH_OVERRIDE);
+
+        $facade = $this->createFacade();
+
+        // Act
+        $result = $facade->getConfigurationValue($this->createStoreScopedRequestTransfer(static::STORE_WITH_OVERRIDE));
+
+        // Assert
+        $this->assertSame(static::STORE_ITEMS_PER_PAGE, $result);
+    }
+
+    public function testGivenAGlobalValueAndAStoreValueWhenGetConfigurationValueForAnotherStoreThenTheGlobalValueIsReturned(): void
+    {
+        // Arrange
+        $this->createConfigurationValueEntity(static::KEY_ITEMS_PER_PAGE, static::SCOPE_GLOBAL, static::GLOBAL_ITEMS_PER_PAGE);
+        $this->createConfigurationValueEntity(static::KEY_ITEMS_PER_PAGE, static::SCOPE_STORE, static::STORE_ITEMS_PER_PAGE, static::STORE_WITH_OVERRIDE);
+
+        $facade = $this->createFacade();
+
+        // Act
+        $result = $facade->getConfigurationValue($this->createStoreScopedRequestTransfer(static::STORE_WITHOUT_OVERRIDE));
+
+        // Assert
+        $this->assertSame(static::GLOBAL_ITEMS_PER_PAGE, $result);
+    }
+
     public function testGetConfigurationValueReturnsNullForUnknownKey(): void
     {
         // Arrange
@@ -129,6 +173,17 @@ class GetConfigurationValueFacadeTest extends Unit
 
         // Assert
         $this->assertNull($result);
+    }
+
+    protected function createStoreScopedRequestTransfer(string $storeName): ConfigurationValueRequestTransfer
+    {
+        return (new ConfigurationValueRequestTransfer())
+            ->setKey(static::KEY_ITEMS_PER_PAGE)
+            ->addScope(
+                (new ConfigurationScopeTransfer())
+                    ->setKey(static::SCOPE_STORE)
+                    ->setIdentifier($storeName),
+            );
     }
 
     protected function createFacade(): ConfigurationFacade
