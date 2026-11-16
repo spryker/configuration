@@ -23,6 +23,10 @@ class SchemaParser implements SchemaParserInterface
      */
     protected array $validationErrors = [];
 
+    public function __construct(protected SettingOptionValueExtractorInterface $settingOptionValueExtractor)
+    {
+    }
+
     /**
      * @param string $yamlContent
      *
@@ -382,6 +386,17 @@ class SchemaParser implements SchemaParserInterface
             return false;
         }
 
+        if (!$this->isDefaultValueAllowed($setting)) {
+            $this->validationErrors[] = sprintf(
+                '%s "%s" has default value "%s" that is not one of its options',
+                $path,
+                $settingKey,
+                $this->settingOptionValueExtractor->normalizeOptionValue($setting[ConfigurationSchemaConstants::SCHEMA_KEY_DEFAULT_VALUE]),
+            );
+
+            return false;
+        }
+
         if (isset($setting[ConfigurationSchemaConstants::SCHEMA_KEY_STATUS]) && !in_array($setting[ConfigurationSchemaConstants::SCHEMA_KEY_STATUS], static::ALLOWED_STATUSES, true)) {
             $this->validationErrors[] = sprintf(
                 '%s "%s" has invalid status "%s". Allowed: %s',
@@ -393,5 +408,20 @@ class SchemaParser implements SchemaParserInterface
         }
 
         return true;
+    }
+
+    /**
+     * @param array<mixed> $setting
+     */
+    protected function isDefaultValueAllowed(array $setting): bool
+    {
+        $defaultValue = $setting[ConfigurationSchemaConstants::SCHEMA_KEY_DEFAULT_VALUE] ?? null;
+        $allowedValues = $this->settingOptionValueExtractor->extractAllowedValues($setting);
+
+        if ($defaultValue === null || $allowedValues === []) {
+            return true;
+        }
+
+        return in_array($this->settingOptionValueExtractor->normalizeOptionValue($defaultValue), $allowedValues, true);
     }
 }

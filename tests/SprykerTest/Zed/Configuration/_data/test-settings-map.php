@@ -70,4 +70,33 @@ return [
             ],
         ],
     ],
+    'ai:assistant:vendor:model' => [
+        'type' => 'select',
+        'default_value' => 'model-small',
+        'secret' => false,
+        'storefront' => false,
+        'scopes' => ['global'],
+        'constraints' => [],
+        'options' => ['model-small', 'model-large'],
+    ],
+    'ai:assistant:vendor:provider' => [
+        'type' => 'radio',
+        'default_value' => 'openai',
+        'secret' => false,
+        'storefront' => false,
+        'scopes' => ['global'],
+        'constraints' => [],
+        'options' => ['openai', 'anthropic'],
+    ],
+    'ai:assistant:vendor:required_model' => [
+        'type' => 'select',
+        'default_value' => 'model-small',
+        'secret' => false,
+        'storefront' => false,
+        'scopes' => ['global'],
+        'constraints' => [
+            ['type' => 'required'],
+        ],
+        'options' => ['model-small', 'model-large'],
+    ],
 ];

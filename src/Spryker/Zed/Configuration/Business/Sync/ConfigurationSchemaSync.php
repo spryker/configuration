@@ -11,6 +11,7 @@ use Generated\Shared\Transfer\ConfigurationSyncResponseTransfer;
 use Spryker\Service\UtilEncoding\UtilEncodingServiceInterface;
 use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Shared\Configuration\Schema\SchemaParserInterface;
+use Spryker\Shared\Configuration\Schema\SettingOptionValueExtractorInterface;
 use Spryker\Zed\Configuration\Business\Schema\ConfigurationSchemaSettingsMapperInterface;
 use Spryker\Zed\Configuration\Business\Search\ConfigurationUsageScannerInterface;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationSchemaKeyValidatorInterface;
@@ -27,6 +28,7 @@ class ConfigurationSchemaSync implements ConfigurationSchemaSyncInterface
         protected ConfigurationUsageScannerInterface $usageScanner,
         protected UtilEncodingServiceInterface $utilEncodingService,
         protected ConfigurationSchemaKeyValidatorInterface $schemaKeyValidator,
+        protected SettingOptionValueExtractorInterface $settingOptionValueExtractor,
     ) {
     }
 
@@ -223,6 +225,7 @@ class ConfigurationSchemaSync implements ConfigurationSchemaSyncInterface
                 ConfigurationSchemaConstants::SCHEMA_KEY_STOREFRONT => $setting[ConfigurationSchemaConstants::SCHEMA_KEY_STOREFRONT] ?? false,
                 ConfigurationSchemaConstants::SCHEMA_KEY_SCOPES => $setting[ConfigurationSchemaConstants::SCHEMA_KEY_SCOPES] ?? [],
                 ConfigurationSchemaConstants::SCHEMA_KEY_CONSTRAINTS => $setting[ConfigurationSchemaConstants::SCHEMA_KEY_CONSTRAINTS] ?? [],
+                ConfigurationSchemaConstants::SCHEMA_KEY_OPTIONS => $this->settingOptionValueExtractor->extractAllowedValues($setting),
                 ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS => $setting[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS] ?? [],
                 ConfigurationSchemaConstants::SCHEMA_KEY_DEPENDENCIES => $setting[ConfigurationSchemaConstants::SCHEMA_KEY_DEPENDENCIES] ?? [],
                 ConfigurationSchemaConstants::SCHEMA_KEY_OVERRIDES => $overridesByKey[$compoundKey] ?? [],

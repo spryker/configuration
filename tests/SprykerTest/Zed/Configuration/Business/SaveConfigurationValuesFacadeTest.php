@@ -41,6 +41,14 @@ class SaveConfigurationValuesFacadeTest extends Unit
 
     protected const string STORED_COLOR = '#a1b2c3';
 
+    protected const string KEY_SELECT_MODEL = 'ai:assistant:vendor:model';
+
+    protected const string KEY_RADIO_PROVIDER = 'ai:assistant:vendor:provider';
+
+    protected const string KEY_REQUIRED_SELECT_MODEL = 'ai:assistant:vendor:required_model';
+
+    protected const string STORED_MODEL = 'model-small';
+
     protected ConfigurationBusinessTester $tester;
 
     public function testSaveConfigurationValuesSuccessfullyPersistsValidValues(): void
@@ -189,6 +197,110 @@ class SaveConfigurationValuesFacadeTest extends Unit
                 ->filterByScope('global')
                 ->findOne(),
         );
+    }
+
+    public function testSaveConfigurationValuesPersistsASelectValueThatIsOneOfTheOptions(): void
+    {
+        // Arrange
+        $facade = $this->createFacade();
+
+        // Act
+        $configurationValueCollectionResponseTransfer = $facade->saveConfigurationValues(
+            $this->createSingleValueRequest(static::KEY_SELECT_MODEL, 'model-large'),
+        );
+
+        // Assert
+        $this->assertTrue($configurationValueCollectionResponseTransfer->getIsSuccess());
+        $this->assertSame('model-large', $this->findStoredValue(static::KEY_SELECT_MODEL));
+    }
+
+    public function testGivenAStoredSelectValueWhenSaveConfigurationValuesWithAValueThatIsNotOneOfTheOptionsThenTheValueIsRejectedAndTheStoredValueIsKept(): void
+    {
+        // Arrange
+        $facade = $this->createFacade();
+        $this->createConfigurationValueEntity(static::KEY_SELECT_MODEL, static::SCOPE_GLOBAL, static::STORED_MODEL);
+
+        // Act
+        $configurationValueCollectionResponseTransfer = $facade->saveConfigurationValues(
+            $this->createSingleValueRequest(static::KEY_SELECT_MODEL, 'unsupported-model'),
+        );
+
+        // Assert
+        $this->assertFalse($configurationValueCollectionResponseTransfer->getIsSuccess());
+        $this->assertSame(0, $configurationValueCollectionResponseTransfer->getSavedCount());
+        $this->assertCount(1, $configurationValueCollectionResponseTransfer->getErrors());
+        $this->assertSame(static::KEY_SELECT_MODEL, $configurationValueCollectionResponseTransfer->getErrors()[0]->getSettingKey());
+        $this->assertSame(
+            'The value "unsupported-model" is not one of the available options.',
+            $configurationValueCollectionResponseTransfer->getErrors()[0]->getMessage(),
+        );
+        $this->assertSame(static::STORED_MODEL, $this->findStoredValue(static::KEY_SELECT_MODEL));
+    }
+
+    public function testGivenASelectSettingWithASchemaConstraintWhenSaveConfigurationValuesWithAValueThatIsNotOneOfTheOptionsThenTheValueIsRejected(): void
+    {
+        // Arrange
+        $facade = $this->createFacade();
+
+        // Act
+        $configurationValueCollectionResponseTransfer = $facade->saveConfigurationValues(
+            $this->createSingleValueRequest(static::KEY_REQUIRED_SELECT_MODEL, 'unsupported-model'),
+        );
+
+        // Assert
+        $this->assertFalse($configurationValueCollectionResponseTransfer->getIsSuccess());
+        $this->assertCount(1, $configurationValueCollectionResponseTransfer->getErrors());
+        $this->assertSame(
+            'The value "unsupported-model" is not one of the available options.',
+            $configurationValueCollectionResponseTransfer->getErrors()[0]->getMessage(),
+        );
+        $this->assertNull($this->findStoredValue(static::KEY_REQUIRED_SELECT_MODEL));
+    }
+
+    public function testSaveConfigurationValuesRejectsAnEmptySelectValue(): void
+    {
+        // Arrange
+        $facade = $this->createFacade();
+
+        // Act
+        $configurationValueCollectionResponseTransfer = $facade->saveConfigurationValues(
+            $this->createSingleValueRequest(static::KEY_SELECT_MODEL, ''),
+        );
+
+        // Assert
+        $this->assertFalse($configurationValueCollectionResponseTransfer->getIsSuccess());
+        $this->assertNull($this->findStoredValue(static::KEY_SELECT_MODEL));
+    }
+
+    public function testSaveConfigurationValuesRejectsARadioValueThatIsNotOneOfTheOptions(): void
+    {
+        // Arrange
+        $facade = $this->createFacade();
+
+        // Act
+        $configurationValueCollectionResponseTransfer = $facade->saveConfigurationValues(
+            $this->createSingleValueRequest(static::KEY_RADIO_PROVIDER, 'unsupported-provider'),
+        );
+
+        // Assert
+        $this->assertFalse($configurationValueCollectionResponseTransfer->getIsSuccess());
+        $this->assertSame(static::KEY_RADIO_PROVIDER, $configurationValueCollectionResponseTransfer->getErrors()[0]->getSettingKey());
+        $this->assertNull($this->findStoredValue(static::KEY_RADIO_PROVIDER));
+    }
+
+    public function testSaveConfigurationValuesPersistsARadioValueThatIsOneOfTheOptions(): void
+    {
+        // Arrange
+        $facade = $this->createFacade();
+
+        // Act
+        $configurationValueCollectionResponseTransfer = $facade->saveConfigurationValues(
+            $this->createSingleValueRequest(static::KEY_RADIO_PROVIDER, 'anthropic'),
+        );
+
+        // Assert
+        $this->assertTrue($configurationValueCollectionResponseTransfer->getIsSuccess());
+        $this->assertSame('anthropic', $this->findStoredValue(static::KEY_RADIO_PROVIDER));
     }
 
     public function testSaveConfigurationValuesProcessesDeletions(): void
@@ -366,5 +478,25 @@ class SaveConfigurationValuesFacadeTest extends Unit
         $entity->setScopeIdentifier($scopeIdentifier);
         $entity->setValue($value);
         $entity->save();
+    }
+
+    protected function createSingleValueRequest(string $settingKey, string $value): ConfigurationValueCollectionRequestTransfer
+    {
+        return (new ConfigurationValueCollectionRequestTransfer())
+            ->addConfigurationValue(
+                (new ConfigurationValueTransfer())
+                    ->setSettingKey($settingKey)
+                    ->setScope(static::SCOPE_GLOBAL)
+                    ->setValue($value),
+            );
+    }
+
+    protected function findStoredValue(string $settingKey): ?string
+    {
+        return SpyConfigurationValueQuery::create()
+            ->filterBySettingKey($settingKey)
+            ->filterByScope(static::SCOPE_GLOBAL)
+            ->findOne()
+            ?->getValue();
     }
 }

@@ -17,6 +17,8 @@ use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReader;
 use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReaderInterface;
 use Spryker\Shared\Configuration\Schema\SchemaMerger;
 use Spryker\Shared\Configuration\Schema\SchemaParser;
+use Spryker\Shared\Configuration\Schema\SettingOptionValueExtractor;
+use Spryker\Shared\Configuration\Schema\SettingOptionValueExtractorInterface;
 use Spryker\Zed\Configuration\Business\Cache\ConfigurationCacheManager;
 use Spryker\Zed\Configuration\Business\Cache\ConfigurationCacheManagerInterface;
 use Spryker\Zed\Configuration\Business\Collector\ConfigurationValuesCollector;
@@ -92,6 +94,7 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
             $this->createConfigurationUsageScanner(),
             $this->getUtilEncodingService(),
             $this->createConfigurationSchemaKeyValidator(),
+            $this->createSettingOptionValueExtractor(),
         );
     }
 
@@ -354,7 +357,12 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
 
     public function createSchemaParser(): SchemaParser
     {
-        return new SchemaParser();
+        return new SchemaParser($this->createSettingOptionValueExtractor());
+    }
+
+    public function createSettingOptionValueExtractor(): SettingOptionValueExtractorInterface
+    {
+        return new SettingOptionValueExtractor();
     }
 
     public function createSchemaMerger(): SchemaMerger

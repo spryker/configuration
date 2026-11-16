@@ -45,3 +45,5 @@ configuration.configure,Konfigurieren
 "Turn all settings in this group on or off","Alle Einstellungen dieser Gruppe ein- oder ausschalten"
 "%enabled% of %total% on","%enabled% von %total% aktiv"
 "Show or hide settings","Einstellungen ein- oder ausblenden"
+"Select an option","Option auswählen"
+configuration.select.unsupported_value,"Der gespeicherte Wert ""%value%"" ist keine der verfügbaren Optionen. Wählen Sie eine unterstützte Option aus."

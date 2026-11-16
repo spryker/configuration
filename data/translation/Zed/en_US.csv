@@ -45,3 +45,5 @@ configuration.configure,Configure
 "Turn all settings in this group on or off","Turn all settings in this group on or off"
 "%enabled% of %total% on","%enabled% of %total% on"
 "Show or hide settings","Show or hide settings"
+"Select an option","Select an option"
+configuration.select.unsupported_value,"The stored value ""%value%"" is not one of the available options. Select a supported option."

@@ -186,6 +186,54 @@ class SyncConfigurationSchemasFacadeTest extends Unit
         $this->assertArrayNotHasKey('test_feature:general:display:static_setting', $settingsMap);
     }
 
+    public function testSyncConfigurationSchemasFailsWhenTheSelectDefaultValueIsNotOneOfItsOptions(): void
+    {
+        // Arrange
+        $this->createSchemaWithSelectSetting('unsupported-model');
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertFalse($result->getIsSuccess());
+        $this->assertStringContainsString(
+            'Setting "model" has default value "unsupported-model" that is not one of its options',
+            implode(PHP_EOL, $result->getErrorMessages()),
+        );
+        $this->assertFileDoesNotExist($this->tempSettingsMapOutputPath);
+    }
+
+    public function testSyncConfigurationSchemasWritesTheOptionValuesOfASelectSettingToTheSettingsMap(): void
+    {
+        // Arrange
+        $this->createSchemaWithSelectSetting('model-small');
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertTrue($result->getIsSuccess());
+
+        $settingsMap = require $this->tempSettingsMapOutputPath;
+        $this->assertSame(['model-small', 'model-large'], $settingsMap['test_feature:general:vendor:model']['options']);
+    }
+
+    public function testSyncConfigurationSchemasWritesNoOptionValuesForASettingThatIsNotASingleChoiceType(): void
+    {
+        // Arrange
+        $this->createTestSchemaYaml();
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $facade->syncConfigurationSchemas();
+
+        // Assert
+        $settingsMap = require $this->tempSettingsMapOutputPath;
+        $this->assertSame([], $settingsMap['test_feature:general:display:test_setting']['options']);
+    }
+
     public function testGivenAWildcardModuleDirectoryPattenWhenSchemasAreSyncedThenTheSchemaIsDiscovered(): void
     {
         // Arrange
@@ -412,6 +460,43 @@ features:
                 name: Static Setting
                 type: string
                 default_value: "default"
+                scopes:
+                  - global
+YAML;
+
+        file_put_contents($dir . '/test.configuration.yaml', $yaml);
+    }
+
+    protected function createSchemaWithSelectSetting(string $defaultValue): void
+    {
+        $dir = __DIR__ . '/../_data/sync_schemas';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $yaml = <<<YAML
+features:
+  - key: test_feature
+    name: Test Feature
+    tabs:
+      - key: general
+        name: General
+        groups:
+          - key: vendor
+            name: Vendor
+            scopes:
+              - global
+            settings:
+              - key: model
+                name: Model
+                type: select
+                default_value: "{$defaultValue}"
+                options:
+                  - value: model-small
+                    label: Small model
+                  - value: model-large
+                    label: Large model
                 scopes:
                   - global
 YAML;

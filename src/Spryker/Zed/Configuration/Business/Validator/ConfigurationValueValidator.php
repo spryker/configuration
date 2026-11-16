@@ -16,6 +16,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ConfigurationValueValidator implements ConfigurationValueValidatorInterface
 {
+    protected const string MESSAGE_VALUE_NOT_ALLOWED = 'The value {{ value }} is not one of the available options.';
+
     public function __construct(
         protected ConfigurationSchemaProviderInterface $schemaProvider,
         protected ConfigurationConstraintMapperInterface $constraintMapper,
@@ -35,7 +37,10 @@ class ConfigurationValueValidator implements ConfigurationValueValidatorInterfac
         }
 
         $settingEntry = $settingsMap[$settingKey];
-        $constraintDefinitions = $settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_CONSTRAINTS] ?? [];
+        $constraintDefinitions = $this->addAllowedValuesConstraintDefinition(
+            $settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_CONSTRAINTS] ?? [],
+            $settingEntry[ConfigurationSchemaConstants::SCHEMA_KEY_OPTIONS] ?? [],
+        );
 
         if (!$constraintDefinitions) {
             return $this->createSuccessResponse();
@@ -50,6 +55,29 @@ class ConfigurationValueValidator implements ConfigurationValueValidatorInterfac
         }
 
         return $this->createFailureResponse($settingKey, $violations);
+    }
+
+    /**
+     * @param array<array<string, mixed>> $constraintDefinitions
+     * @param list<string> $allowedValues
+     *
+     * @return array<array<string, mixed>>
+     */
+    protected function addAllowedValuesConstraintDefinition(array $constraintDefinitions, array $allowedValues): array
+    {
+        if ($allowedValues === []) {
+            return $constraintDefinitions;
+        }
+
+        $constraintDefinitions[] = [
+            ConfigurationSchemaConstants::CONSTRAINT_KEY_TYPE => ConfigurationSchemaConstants::CONSTRAINT_TYPE_CHOICE,
+            ConfigurationSchemaConstants::CONSTRAINT_KEY_MESSAGE => static::MESSAGE_VALUE_NOT_ALLOWED,
+            ConfigurationSchemaConstants::CONSTRAINT_KEY_OPTIONS => [
+                ConfigurationSchemaConstants::CONSTRAINT_OPTION_CHOICES => $allowedValues,
+            ],
+        ];
+
+        return $constraintDefinitions;
     }
 
     /**
