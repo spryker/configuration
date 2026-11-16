@@ -50,6 +50,16 @@
             </div>
         {% endif %}
 
+        {% if setting.link %}
+            <div class="setting-row__item-link mt-1">
+                <a href="{{ url('/configuration/manage', {feature: setting.link.feature, tab: setting.link.tab}) }}"
+                   class="js-setting-tab-link"
+                   data-qa="setting-tab-link"
+                   data-feature="{{ setting.link.feature }}"
+                   data-tab="{{ setting.link.tab }}">{{ setting.link.label | trans }}</a>
+            </div>
+        {% endif %}
+
         {% if setting.note %}
             <div class="setting-row__item-note">
                 {{ setting.note | trans }}

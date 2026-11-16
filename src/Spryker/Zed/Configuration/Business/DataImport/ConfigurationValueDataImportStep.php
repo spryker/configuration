@@ -55,7 +55,7 @@ class ConfigurationValueDataImportStep extends PublishAwareStep implements DataI
         $configurationValueTransfer = (new ConfigurationValueTransfer())
             ->setSettingKey($settingKey)
             ->setScope($scope)
-            ->setScopeIdentifier($scopeIdentifier ?? '')
+            ->setScopeIdentifier($scopeIdentifier)
             ->setValue($value);
 
         $configurationValueCollectionRequestTransfer = (new ConfigurationValueCollectionRequestTransfer())

@@ -7,6 +7,7 @@
 
 namespace Spryker\Zed\Configuration\Communication\Loader;
 
+use Generated\Shared\Transfer\ConfigurationSettingLinkTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingValuesCriteriaTransfer;
 use Spryker\Client\Configuration\ConfigurationClientInterface;
@@ -78,6 +79,8 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
     protected const string NODE_KEY_SECTION = 'section';
 
     protected const string NODE_KEY_LAYOUT = 'layout';
+
+    protected const string NODE_KEY_LINK = 'link';
 
     public function __construct(
         protected ConfigurationFacadeInterface $configurationFacade,
@@ -190,6 +193,7 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
                 static::NODE_KEY_STATUS => $setting->getStatus(),
                 static::NODE_KEY_IS_OVERRIDDEN => ($settingOverrides[$key] ?? []) !== [],
                 static::NODE_KEY_OVERRIDE_INFO => $settingOverrides[$key] ?? [],
+                static::NODE_KEY_LINK => $this->getLinkData($setting->getLink()),
             ];
 
             $groups[$groupKey][static::NODE_KEY_SETTINGS][] = $this->dataObjectResolver->resolve($settingData);
@@ -211,6 +215,22 @@ class ConfigurationSettingsLoader implements ConfigurationSettingsLoaderInterfac
     protected function formatKey(string $key): string
     {
         return ucwords(str_replace('_', ' ', $key));
+    }
+
+    /**
+     * @return array<string, string|null>|null
+     */
+    protected function getLinkData(?ConfigurationSettingLinkTransfer $configurationSettingLinkTransfer): ?array
+    {
+        if ($configurationSettingLinkTransfer === null) {
+            return null;
+        }
+
+        return [
+            ConfigurationSchemaConstants::SCHEMA_KEY_LINK_LABEL => $configurationSettingLinkTransfer->getLabel(),
+            ConfigurationSchemaConstants::SCHEMA_KEY_LINK_FEATURE => $configurationSettingLinkTransfer->getFeatureKey(),
+            ConfigurationSchemaConstants::SCHEMA_KEY_LINK_TAB => $configurationSettingLinkTransfer->getTabKey(),
+        ];
     }
 
     /**

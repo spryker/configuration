@@ -13,6 +13,7 @@ use Generated\Shared\Transfer\DataImporterDataSourceConfigurationTransfer;
 use Generated\Shared\Transfer\DataImporterReaderConfigurationTransfer;
 use Generated\Shared\Transfer\DataImporterReportTransfer;
 use Orm\Zed\Configuration\Persistence\SpyConfigurationValueQuery;
+use Propel\Runtime\ActiveQuery\Criteria;
 use Spryker\Service\UtilEncryption\UtilEncryptionServiceInterface;
 use Spryker\Shared\Configuration\ConfigurationConfig as SharedConfigurationConfig;
 use Spryker\Zed\Configuration\Business\ConfigurationBusinessFactory;
@@ -63,9 +64,10 @@ class ConfigurationValueDataImportPluginTest extends Unit
         $globalEntity = SpyConfigurationValueQuery::create()
             ->filterBySettingKey('catalog:general:display:items_per_page')
             ->filterByScope('global')
+            ->filterByScopeIdentifier(null, Criteria::ISNULL)
             ->findOne();
 
-        $this->assertNotNull($globalEntity, 'Global configuration value should exist in database.');
+        $this->assertNotNull($globalEntity, 'Global configuration value should exist in database without a scope identifier.');
         $this->assertSame('24', $globalEntity->getValue());
 
         $storeEntity = SpyConfigurationValueQuery::create()

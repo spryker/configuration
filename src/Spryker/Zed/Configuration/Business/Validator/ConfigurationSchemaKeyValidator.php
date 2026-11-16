@@ -29,7 +29,99 @@ class ConfigurationSchemaKeyValidator implements ConfigurationSchemaKeyValidator
             $this->collectFeatureKeyErrors($feature, $seenKeys, $errors);
         }
 
+        return array_merge($errors, $this->collectLinkTargetErrors($schema));
+    }
+
+    /**
+     * @param array<mixed> $schema
+     *
+     * @return array<string>
+     */
+    protected function collectLinkTargetErrors(array $schema): array
+    {
+        $enabledTabs = $this->getEnabledTabs($schema);
+        $errors = [];
+
+        foreach ($this->getSettingLinkTargets($enabledTabs) as $settingPath => $targetTabPath) {
+            if (isset($enabledTabs[$targetTabPath])) {
+                continue;
+            }
+
+            $errors[] = sprintf('Setting "%s" links to "%s", which is not an enabled tab', $settingPath, $targetTabPath);
+        }
+
         return $errors;
+    }
+
+    /**
+     * @param array<mixed> $schema
+     *
+     * @return array<string, array<mixed>> Keys are `feature:tab`.
+     */
+    protected function getEnabledTabs(array $schema): array
+    {
+        $enabledTabs = [];
+
+        foreach ($this->filterEnabled($schema[ConfigurationSchemaConstants::SCHEMA_KEY_FEATURES] ?? []) as $feature) {
+            foreach ($this->filterEnabled($feature[ConfigurationSchemaConstants::SCHEMA_KEY_TABS] ?? []) as $tab) {
+                $enabledTabs[sprintf('%s:%s', $feature[ConfigurationSchemaConstants::SCHEMA_KEY_KEY], $tab[ConfigurationSchemaConstants::SCHEMA_KEY_KEY])] = $tab;
+            }
+        }
+
+        return $enabledTabs;
+    }
+
+    /**
+     * @param array<string, array<mixed>> $enabledTabs
+     *
+     * @return array<string, string> Keys are the setting paths, values the `feature:tab` the setting links to.
+     */
+    protected function getSettingLinkTargets(array $enabledTabs): array
+    {
+        $linkTargets = [];
+
+        foreach ($enabledTabs as $tabPath => $tab) {
+            foreach ($this->filterEnabled($tab[ConfigurationSchemaConstants::SCHEMA_KEY_GROUPS] ?? []) as $group) {
+                $linkTargets += $this->getGroupLinkTargets(sprintf('%s:%s', $tabPath, $group[ConfigurationSchemaConstants::SCHEMA_KEY_KEY]), $group);
+            }
+        }
+
+        return $linkTargets;
+    }
+
+    /**
+     * @param array<mixed> $group
+     *
+     * @return array<string, string>
+     */
+    protected function getGroupLinkTargets(string $groupPath, array $group): array
+    {
+        $linkTargets = [];
+
+        foreach ($this->filterEnabled($group[ConfigurationSchemaConstants::SCHEMA_KEY_SETTINGS] ?? []) as $setting) {
+            if (!isset($setting[ConfigurationSchemaConstants::SCHEMA_KEY_LINK])) {
+                continue;
+            }
+
+            $link = $setting[ConfigurationSchemaConstants::SCHEMA_KEY_LINK];
+            $linkTargets[sprintf('%s:%s', $groupPath, $setting[ConfigurationSchemaConstants::SCHEMA_KEY_KEY])] = sprintf(
+                '%s:%s',
+                $link[ConfigurationSchemaConstants::SCHEMA_KEY_LINK_FEATURE],
+                $link[ConfigurationSchemaConstants::SCHEMA_KEY_LINK_TAB],
+            );
+        }
+
+        return $linkTargets;
+    }
+
+    /**
+     * @param array<mixed> $items
+     *
+     * @return array<mixed>
+     */
+    protected function filterEnabled(array $items): array
+    {
+        return array_filter($items, fn (array $item): bool => !$this->isDisabled($item));
     }
 
     /**

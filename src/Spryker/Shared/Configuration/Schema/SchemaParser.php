@@ -18,6 +18,12 @@ class SchemaParser implements SchemaParserInterface
         ConfigurationSchemaConstants::STATUS_EARLY_ACCESS,
     ];
 
+    protected const array LINK_KEYS = [
+        ConfigurationSchemaConstants::SCHEMA_KEY_LINK_LABEL,
+        ConfigurationSchemaConstants::SCHEMA_KEY_LINK_FEATURE,
+        ConfigurationSchemaConstants::SCHEMA_KEY_LINK_TAB,
+    ];
+
     /**
      * @var array<string>
      */
@@ -397,6 +403,18 @@ class SchemaParser implements SchemaParserInterface
             return false;
         }
 
+        if (isset($setting[ConfigurationSchemaConstants::SCHEMA_KEY_LINK]) && !$this->isLinkValid($setting[ConfigurationSchemaConstants::SCHEMA_KEY_LINK])) {
+            $this->validationErrors[] = sprintf(
+                '%s "%s" has an invalid "%s". It needs non-empty "%s" strings.',
+                $path,
+                $settingKey,
+                ConfigurationSchemaConstants::SCHEMA_KEY_LINK,
+                implode('", "', static::LINK_KEYS),
+            );
+
+            return false;
+        }
+
         if (isset($setting[ConfigurationSchemaConstants::SCHEMA_KEY_STATUS]) && !in_array($setting[ConfigurationSchemaConstants::SCHEMA_KEY_STATUS], static::ALLOWED_STATUSES, true)) {
             $this->validationErrors[] = sprintf(
                 '%s "%s" has invalid status "%s". Allowed: %s',
@@ -423,5 +441,20 @@ class SchemaParser implements SchemaParserInterface
         }
 
         return in_array($this->settingOptionValueExtractor->normalizeOptionValue($defaultValue), $allowedValues, true);
+    }
+
+    protected function isLinkValid(mixed $link): bool
+    {
+        if (!is_array($link)) {
+            return false;
+        }
+
+        foreach (static::LINK_KEYS as $linkKey) {
+            if (!isset($link[$linkKey]) || !is_string($link[$linkKey]) || $link[$linkKey] === '') {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

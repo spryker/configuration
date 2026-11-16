@@ -14,6 +14,7 @@ use Spryker\Zed\Configuration\Business\ConfigurationFacade;
 use Spryker\Zed\Configuration\ConfigurationConfig;
 use Spryker\Zed\Configuration\ConfigurationDependencyProvider;
 use SprykerTest\Zed\Configuration\ConfigurationBusinessTester;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * Auto-generated group annotations
@@ -253,6 +254,68 @@ class SyncConfigurationSchemasFacadeTest extends Unit
         $this->assertArrayHasKey('test_feature:general:display:test_setting', $settingsMap);
     }
 
+    public function testSyncConfigurationSchemasStoresTheLinkOfASettingToAnotherTab(): void
+    {
+        // Arrange
+        $link = ['label' => 'Open the other tab', 'feature' => 'test_feature', 'tab' => 'other'];
+        $this->createSchemaWithSettingLink($link);
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertTrue($result->getIsSuccess(), implode(PHP_EOL, $result->getErrorMessages()));
+        $schema = require $this->tempSchemaOutputPath;
+        $this->assertSame($link, $schema['features'][0]['tabs'][0]['groups'][0]['settings'][0]['link']);
+    }
+
+    /**
+     * @dataProvider provideMalformedLinks
+     */
+    public function testSyncConfigurationSchemasFailsOnAMalformedLink(mixed $link): void
+    {
+        // Arrange
+        $this->createSchemaWithSettingLink($link);
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertFalse($result->getIsSuccess());
+        $this->assertStringContainsString('"link"', implode(PHP_EOL, $result->getErrorMessages()));
+    }
+
+    public function testSyncConfigurationSchemasFailsOnALinkToAnUnknownTab(): void
+    {
+        // Arrange
+        $this->createSchemaWithSettingLink(['label' => 'Open the missing tab', 'feature' => 'test_feature', 'tab' => 'missing']);
+        $facade = $this->createFacadeWithSchemaDirectory($this->getRelativeSchemaPath());
+
+        // Act
+        $result = $facade->syncConfigurationSchemas();
+
+        // Assert
+        $this->assertFalse($result->getIsSuccess());
+        $this->assertStringContainsString('test_feature:general:display:test_setting', implode(PHP_EOL, $result->getErrorMessages()));
+    }
+
+    /**
+     * @return array<string, array{mixed}>
+     */
+    public function provideMalformedLinks(): array
+    {
+        return [
+            'not a map' => ['test_feature:other'],
+            'without label' => [['feature' => 'test_feature', 'tab' => 'other']],
+            'without feature' => [['label' => 'Open the other tab', 'tab' => 'other']],
+            'without tab' => [['label' => 'Open the other tab', 'feature' => 'test_feature']],
+            'with an empty tab' => [['label' => 'Open the other tab', 'feature' => 'test_feature', 'tab' => '']],
+            'with a tab that is not a string' => [['label' => 'Open the other tab', 'feature' => 'test_feature', 'tab' => ['other']]],
+        ];
+    }
+
     /**
      * @param array<string> $moduleDirectoryPattens
      */
@@ -432,6 +495,51 @@ features:
 YAML;
 
         file_put_contents($dir . '/test.configuration.yaml', $yaml);
+    }
+
+    protected function createSchemaWithSettingLink(mixed $link): void
+    {
+        $dir = __DIR__ . '/../_data/sync_schemas';
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $schema = [
+            'features' => [
+                [
+                    'key' => 'test_feature',
+                    'name' => 'Test Feature',
+                    'tabs' => [
+                        $this->createTabSchema('general', ['key' => 'test_setting', 'name' => 'Test Setting', 'type' => 'string', 'scopes' => ['global'], 'link' => $link]),
+                        $this->createTabSchema('other', ['key' => 'other_setting', 'name' => 'Other Setting', 'type' => 'string', 'scopes' => ['global']]),
+                    ],
+                ],
+            ],
+        ];
+
+        file_put_contents($dir . '/test.configuration.yaml', Yaml::dump($schema, 10, 2));
+    }
+
+    /**
+     * @param array<string, mixed> $setting
+     *
+     * @return array<string, mixed>
+     */
+    protected function createTabSchema(string $tabKey, array $setting): array
+    {
+        return [
+            'key' => $tabKey,
+            'name' => ucfirst($tabKey),
+            'groups' => [
+                [
+                    'key' => 'display',
+                    'name' => 'Display',
+                    'scopes' => ['global'],
+                    'settings' => [$setting],
+                ],
+            ],
+        ];
     }
 
     protected function createSchemaWithStaticKey(): void

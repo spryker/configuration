@@ -238,6 +238,30 @@
                     "description": "Additional note displayed below the setting description",
                     "maxLength": 1000
                 },
+                "link": {
+                    "type": "object",
+                    "description": "Link to another tab of the configuration page, displayed below the setting description",
+                    "required": ["label", "feature", "tab"],
+                    "additionalProperties": false,
+                    "properties": {
+                        "label": {
+                            "type": "string",
+                            "description": "Link text, translated like the setting name",
+                            "minLength": 1,
+                            "maxLength": 255
+                        },
+                        "feature": {
+                            "type": "string",
+                            "description": "Key of the feature that holds the tab",
+                            "minLength": 1
+                        },
+                        "tab": {
+                            "type": "string",
+                            "description": "Key of the tab the link opens",
+                            "minLength": 1
+                        }
+                    }
+                },
                 "template": {
                     "type": "string",
                     "description": "Custom Twig template path for rendering the input (e.g., '@MyModule/Configuration/custom-input.twig'). Overrides the default type-based input widget.",

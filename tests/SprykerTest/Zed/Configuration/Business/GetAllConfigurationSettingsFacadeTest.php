@@ -8,6 +8,7 @@
 namespace SprykerTest\Zed\Configuration\Business;
 
 use Codeception\Test\Unit;
+use Generated\Shared\Transfer\ConfigurationSettingLinkTransfer;
 use Spryker\Service\UtilEncryption\UtilEncryptionServiceInterface;
 use Spryker\Shared\Configuration\ConfigurationConfig as SprykerConfigurationConfig;
 use Spryker\Zed\Configuration\Business\ConfigurationBusinessFactory;
@@ -78,6 +79,22 @@ class GetAllConfigurationSettingsFacadeTest extends Unit
         $apiKey = $result[3];
         $this->assertSame('catalog:email:notifications:api_key', $apiKey->getKey());
         $this->assertTrue($apiKey->getIsSecret());
+    }
+
+    public function testGetAllConfigurationSettingsMapsTheLinkOfASettingToAnotherTab(): void
+    {
+        // Arrange
+        $facade = $this->createFacadeWithTestSchema();
+
+        // Act
+        $result = $facade->getAllConfigurationSettings();
+
+        // Assert
+        $this->assertSame(
+            [ConfigurationSettingLinkTransfer::LABEL => 'Open the display settings', ConfigurationSettingLinkTransfer::FEATURE_KEY => 'catalog', ConfigurationSettingLinkTransfer::TAB_KEY => 'general'],
+            $result[2]->getLinkOrFail()->toArray(true, true),
+        );
+        $this->assertNull($result[0]->getLink());
     }
 
     public function testGetAllConfigurationSettingsReturnsEmptyArrayWhenNoSchema(): void

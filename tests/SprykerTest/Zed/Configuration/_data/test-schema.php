@@ -60,6 +60,11 @@ return [
                                     'name' => 'Sender Email',
                                     'type' => 'string',
                                     'default_value' => 'noreply@example.com',
+                                    'link' => [
+                                        'label' => 'Open the display settings',
+                                        'feature' => 'catalog',
+                                        'tab' => 'general',
+                                    ],
                                     'scopes' => ['global'],
                                     'constraints' => [
                                         ['type' => 'required'],

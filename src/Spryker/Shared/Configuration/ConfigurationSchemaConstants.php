@@ -286,6 +286,39 @@ interface ConfigurationSchemaConstants
      */
     public const string SCHEMA_KEY_TEMPLATE = 'template';
 
+    /**
+     * Specification:
+     * - Optional key of a setting: a link to another tab of the configuration page, shown below the setting description.
+     * - Holds a map with `SCHEMA_KEY_LINK_LABEL`, `SCHEMA_KEY_LINK_FEATURE` and `SCHEMA_KEY_LINK_TAB`.
+     *
+     * @api
+     */
+    public const string SCHEMA_KEY_LINK = 'link';
+
+    /**
+     * Specification:
+     * - Text of a setting link, translated like the setting name.
+     *
+     * @api
+     */
+    public const string SCHEMA_KEY_LINK_LABEL = 'label';
+
+    /**
+     * Specification:
+     * - Key of the feature that holds the tab a setting link opens.
+     *
+     * @api
+     */
+    public const string SCHEMA_KEY_LINK_FEATURE = 'feature';
+
+    /**
+     * Specification:
+     * - Key of the tab a setting link opens.
+     *
+     * @api
+     */
+    public const string SCHEMA_KEY_LINK_TAB = 'tab';
+
     public const string SCHEMA_KEY_SANITIZE_XSS = 'sanitize_xss';
 
     public const string SCHEMA_KEY_SANITIZE_XSS_ALLOW_SAFE_ELEMENTS = 'allow_safe_elements';

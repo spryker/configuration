@@ -7,6 +7,7 @@
 
 namespace Spryker\Zed\Configuration\Business\Schema;
 
+use Generated\Shared\Transfer\ConfigurationSettingLinkTransfer;
 use Generated\Shared\Transfer\ConfigurationSettingTransfer;
 use Spryker\Service\UtilEncoding\UtilEncodingServiceInterface;
 use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
@@ -134,7 +135,7 @@ class ConfigurationSchemaSettingsMapper implements ConfigurationSchemaSettingsMa
             $setting[ConfigurationSchemaConstants::SCHEMA_KEY_KEY],
         );
 
-        return (new ConfigurationSettingTransfer())
+        $configurationSettingTransfer = (new ConfigurationSettingTransfer())
             ->setKey($compoundKey)
             ->setName($setting[ConfigurationSchemaConstants::SCHEMA_KEY_NAME])
             ->setDescription($setting[ConfigurationSchemaConstants::SCHEMA_KEY_DESCRIPTION] ?? null)
@@ -161,5 +162,26 @@ class ConfigurationSchemaSettingsMapper implements ConfigurationSchemaSettingsMa
             ->setStatus($setting[ConfigurationSchemaConstants::SCHEMA_KEY_STATUS] ?? null)
             ->setSanitizeXss($setting[ConfigurationSchemaConstants::SCHEMA_KEY_SANITIZE_XSS] ?? [])
             ->setDataObject($setting[ConfigurationSchemaConstants::SCHEMA_KEY_DATA_OBJECT] ?? null);
+
+        if (!isset($setting[ConfigurationSchemaConstants::SCHEMA_KEY_LINK])) {
+            return $configurationSettingTransfer;
+        }
+
+        return $configurationSettingTransfer->setLink(
+            $this->mapLinkToConfigurationSettingLinkTransfer($setting[ConfigurationSchemaConstants::SCHEMA_KEY_LINK], new ConfigurationSettingLinkTransfer()),
+        );
+    }
+
+    /**
+     * @param array<string, string> $link
+     */
+    protected function mapLinkToConfigurationSettingLinkTransfer(
+        array $link,
+        ConfigurationSettingLinkTransfer $configurationSettingLinkTransfer
+    ): ConfigurationSettingLinkTransfer {
+        return $configurationSettingLinkTransfer
+            ->setLabel($link[ConfigurationSchemaConstants::SCHEMA_KEY_LINK_LABEL])
+            ->setFeatureKey($link[ConfigurationSchemaConstants::SCHEMA_KEY_LINK_FEATURE])
+            ->setTabKey($link[ConfigurationSchemaConstants::SCHEMA_KEY_LINK_TAB]);
     }
 }

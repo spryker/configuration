@@ -28,6 +28,13 @@
         <property name="sanitizeXss" type="array" singular="sanitizeXssOption"/>
         <property name="status" type="string"/>
         <property name="dataObject" type="string"/>
+        <property name="link" type="ConfigurationSettingLink" description="Link to another tab of the configuration page, shown below the setting description."/>
+    </transfer>
+
+    <transfer name="ConfigurationSettingLink" strict="true">
+        <property name="label" type="string"/>
+        <property name="featureKey" type="string"/>
+        <property name="tabKey" type="string"/>
     </transfer>
 
     <transfer name="ConfigurationValue" strict="true">

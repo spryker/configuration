@@ -202,8 +202,8 @@ class ConfigurationManagement {
     }
 
     #markDependentAsChanged(settingKey, cached) {
-        const { row, input } = cached;
-        const currentValue = input ? this.#readValueFromInput(input) : null;
+        const { row } = cached;
+        const currentValue = this.#getCurrentValue(settingKey);
 
         if (currentValue !== null) {
             this.#changes.set(settingKey, { value: currentValue, useDefault: false });
@@ -405,6 +405,10 @@ class ConfigurationManagement {
     #bindReadOnlyEvents() {
         document.querySelectorAll('.js-nav-tab').forEach((tab) => {
             tab.addEventListener('click', () => this.#handleTabChange(tab.dataset.feature, tab.dataset.tab));
+        });
+
+        document.querySelectorAll('.js-setting-tab-link').forEach((link) => {
+            link.addEventListener('click', (event) => this.#handleSettingTabLinkClick(event, link));
         });
 
         document.querySelector('.js-scope-combined')?.addEventListener('change', () => this.#handleScopeChange());
@@ -921,6 +925,15 @@ class ConfigurationManagement {
         }
 
         window.location.href = url.toString();
+    }
+
+    #handleSettingTabLinkClick(event, link) {
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+            return;
+        }
+
+        event.preventDefault();
+        this.#handleTabChange(link.dataset.feature, link.dataset.tab);
     }
 
     #handleTabChange(featureKey, tabKey) {
