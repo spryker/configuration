@@ -35,4 +35,13 @@ interface ConfigurationRepositoryInterface
      * @return array<string, \Generated\Shared\Transfer\ConfigurationValueTransfer>
      */
     public function findAllConfigurationValuesByScope(string $scope, ?string $scopeIdentifier = null): array;
+
+    /**
+     * Returns saved values for the given keys in all scopes.
+     *
+     * @param array<string> $keys
+     *
+     * @return list<\Generated\Shared\Transfer\ConfigurationValueTransfer>
+     */
+    public function getConfigurationValuesBySettingKeys(array $keys): array;
 }

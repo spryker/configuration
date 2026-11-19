@@ -16,6 +16,12 @@ use Spryker\Zed\Kernel\Persistence\AbstractRepository;
  */
 class ConfigurationRepository extends AbstractRepository implements ConfigurationRepositoryInterface
 {
+    /**
+     * The image build runs `configuration:sync` before `propel:model:build`. The committed query class extends this
+     * generated base class, so checking the committed class would autoload it and fail on the missing parent.
+     */
+    protected const string GENERATED_CONFIGURATION_VALUE_QUERY_BASE_CLASS = '\\Orm\\Zed\\Configuration\\Persistence\\Base\\SpyConfigurationValueQuery';
+
     public function findConfigurationValueByKeyAndScope(string $key, string $scope, ?string $scopeIdentifier = null): ?ConfigurationValueTransfer
     {
         $valueQuery = $this->getFactory()->createSpyConfigurationValueQuery()
@@ -104,5 +110,35 @@ class ConfigurationRepository extends AbstractRepository implements Configuratio
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string> $keys
+     *
+     * @return list<\Generated\Shared\Transfer\ConfigurationValueTransfer>
+     */
+    public function getConfigurationValuesBySettingKeys(array $keys): array
+    {
+        if (!$keys || !class_exists(static::GENERATED_CONFIGURATION_VALUE_QUERY_BASE_CLASS)) {
+            return [];
+        }
+
+        $valueEntities = $this->getFactory()->createSpyConfigurationValueQuery()
+            ->filterBySettingKey($keys, Criteria::IN)
+            ->orderByIdConfigurationValue()
+            ->find();
+
+        $configurationValueTransfers = [];
+
+        foreach ($valueEntities as $valueEntity) {
+            $configurationValueTransfers[] = (new ConfigurationValueTransfer())
+                ->setIdConfigurationValue($valueEntity->getIdConfigurationValue())
+                ->setSettingKey($valueEntity->getSettingKey())
+                ->setScope($valueEntity->getScope())
+                ->setScopeIdentifier($valueEntity->getScopeIdentifier())
+                ->setValue($valueEntity->getValue());
+        }
+
+        return $configurationValueTransfers;
     }
 }

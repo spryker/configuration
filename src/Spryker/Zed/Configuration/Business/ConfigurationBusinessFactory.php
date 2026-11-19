@@ -31,6 +31,8 @@ use Spryker\Zed\Configuration\Business\DataImport\Step\ConfigurationValueScopeVa
 use Spryker\Zed\Configuration\Business\DataImport\Step\ConfigurationValueSettingKeyValidatorStep;
 use Spryker\Zed\Configuration\Business\Logger\ConfigurationAuditLogger;
 use Spryker\Zed\Configuration\Business\Logger\ConfigurationAuditLoggerInterface;
+use Spryker\Zed\Configuration\Business\Migrator\ConfigurationSecretValueMigrator;
+use Spryker\Zed\Configuration\Business\Migrator\ConfigurationSecretValueMigratorInterface;
 use Spryker\Zed\Configuration\Business\Reader\ConfigurationReader;
 use Spryker\Zed\Configuration\Business\Reader\ConfigurationReaderInterface;
 use Spryker\Zed\Configuration\Business\Resolver\ConfigurationScopeIdentifierResolver;
@@ -55,6 +57,7 @@ use Spryker\Zed\Configuration\Business\Sync\ConfigurationSchemaMerger;
 use Spryker\Zed\Configuration\Business\Sync\ConfigurationSchemaMergerInterface;
 use Spryker\Zed\Configuration\Business\Sync\ConfigurationSchemaSync;
 use Spryker\Zed\Configuration\Business\Sync\ConfigurationSchemaSyncInterface;
+use Spryker\Zed\Configuration\Business\Sync\SecretValueMigratingConfigurationSchemaSync;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationConstraintMapper;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationConstraintMapperInterface;
 use Spryker\Zed\Configuration\Business\Validator\ConfigurationSchemaKeyValidator;
@@ -85,6 +88,15 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
 
     public function createConfigurationSchemaSync(): ConfigurationSchemaSyncInterface
     {
+        return new SecretValueMigratingConfigurationSchemaSync(
+            $this->createSecretValueUnawareConfigurationSchemaSync(),
+            $this->createConfigurationSecretValueMigrator(),
+            $this->getConfig(),
+        );
+    }
+
+    public function createSecretValueUnawareConfigurationSchemaSync(): ConfigurationSchemaSyncInterface
+    {
         return new ConfigurationSchemaSync(
             $this->createConfigurationSchemaLoader(),
             $this->createConfigurationSchemaMerger(),
@@ -95,6 +107,16 @@ class ConfigurationBusinessFactory extends AbstractBusinessFactory
             $this->getUtilEncodingService(),
             $this->createConfigurationSchemaKeyValidator(),
             $this->createSettingOptionValueExtractor(),
+        );
+    }
+
+    public function createConfigurationSecretValueMigrator(): ConfigurationSecretValueMigratorInterface
+    {
+        return new ConfigurationSecretValueMigrator(
+            $this->getRepository(),
+            $this->getEntityManager(),
+            $this->createConfigurationValueEncryptor(),
+            $this->createConfigurationCacheManager(),
         );
     }
 

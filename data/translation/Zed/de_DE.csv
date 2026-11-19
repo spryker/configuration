@@ -47,3 +47,5 @@ configuration.configure,Konfigurieren
 "Show or hide settings","Einstellungen ein- oder ausblenden"
 "Select an option","Option auswählen"
 configuration.select.unsupported_value,"Der gespeicherte Wert ""%value%"" ist keine der verfügbaren Optionen. Wählen Sie eine unterstützte Option aus."
+"A secret value is stored. Enter a new value to replace it.","Ein geheimer Wert ist gespeichert. Geben Sie einen neuen Wert ein, um ihn zu ersetzen."
+"Enter a secret value.","Geben Sie einen geheimen Wert ein."

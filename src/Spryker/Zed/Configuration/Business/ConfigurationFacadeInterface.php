@@ -60,7 +60,12 @@ interface ConfigurationFacadeInterface
      * - Parses and validates each YAML file against the JSON Schema.
      * - Merges all schemas, with project-level settings overriding core at the setting key level.
      * - Writes the merged schema to the file path defined in `ConfigurationConfig::getMergedSchemaFilePath()`.
-     * - Returns `ConfigurationSyncResponseTransfer` with `isSuccess`, `processedCount`, and `errorMessages`.
+     * - Then checks every stored configuration value of the settings in the new settings map, in all scopes, in one transaction:
+     *   encrypts the plain value of a `secret: true` setting and decrypts the encrypted value of a `secret: false` setting.
+     * - Skips empty values, values that already match the `secret` flag, and secret values that look encrypted with another key.
+     * - Adds one warning message per changed or skipped value; the message for an encrypted value asks to rotate the credential.
+     * - Skips the value check with a warning when the database is not reachable or the configuration value table does not exist.
+     * - Returns `ConfigurationSyncResponseTransfer` with `isSuccess`, `processedCount`, `errorMessages` and `warningMessages`.
      *
      * @api
      */

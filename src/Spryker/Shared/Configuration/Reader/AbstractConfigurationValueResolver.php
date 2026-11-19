@@ -14,9 +14,14 @@ use Spryker\Shared\Configuration\ConfigurationConstants;
 use Spryker\Shared\Configuration\ConfigurationSchemaConstants;
 use Spryker\Shared\Configuration\Encryptor\ConfigurationValueEncryptorInterface;
 use Spryker\Shared\Configuration\Schema\ConfigurationSchemaReaderInterface;
+use Spryker\Shared\Log\LoggerTrait;
 
 abstract class AbstractConfigurationValueResolver implements ConfigurationValueResolverInterface
 {
+    use LoggerTrait;
+
+    protected const string LOG_MESSAGE_DECRYPTION_FAILED = 'The stored value of the secret configuration setting "%s" cannot be decrypted. The value is not encrypted or was encrypted with a different key. Run "configuration:sync" where the database is reachable, or save the value again.';
+
     /**
      * @var array<string, array<string, mixed>>|null
      */
@@ -235,6 +240,12 @@ abstract class AbstractConfigurationValueResolver implements ConfigurationValueR
             return $value;
         }
 
-        return $this->encryptor->decrypt($value);
+        $decryptedValue = $this->encryptor->decrypt($value);
+
+        if ($decryptedValue === '') {
+            $this->getLogger()->warning(sprintf(static::LOG_MESSAGE_DECRYPTION_FAILED, $key));
+        }
+
+        return $decryptedValue;
     }
 }
